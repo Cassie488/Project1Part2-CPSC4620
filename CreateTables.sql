@@ -1,4 +1,5 @@
 /*Create ERD Tables*/
+/*Mary Walker Felder and Cassie Phillips*/
 
 DROP SCHEMA IF EXISTS PizzaDB;
 CREATE SCHEMA PizzaDB;
@@ -6,7 +7,6 @@ USE PizzaDB;
 
 CREATE TABLE baseprice
 (
-	
 	baseprice_Size VARCHAR(30) NOT NULL,
     baseprice_CrustType VARCHAR(30) NOT NULL,
     baseprice_CustPrice DECIMAL(5,2),
@@ -24,7 +24,7 @@ CREATE TABLE customer
 
 CREATE TABLE topping
 (
-	topping_TopID INT PRIMARY KEY NOT NULL,
+	topping_TopID INT PRIMARY KEY NOT NULL auto_increment,
     topping_TopName VARCHAR(30),
     topping_SmallAMT DECIMAL(5,2),
     topping_MedAMT DECIMAL(5,2),
@@ -38,7 +38,7 @@ CREATE TABLE topping
 
 CREATE TABLE discount
 (
-	discount_DiscountID INT PRIMARY KEY NOT NULL,
+	discount_DiscountID INT PRIMARY KEY NOT NULL auto_increment,
     discount_DiscountName VARCHAR(30),
     discount_Amount DECIMAL(5,2),
     discount_IsPercent BOOLEAN
@@ -59,16 +59,16 @@ CREATE TABLE ordertable
 CREATE TABLE pizza
 (
 	pizza_PizzaID INT PRIMARY KEY NOT NULL,
-    pizza_Size VARCHAR(30),
-    pizza_CrustType VARCHAR(30),
+    pizza_Size VARCHAR(30) NOT NULL,
+    pizza_CrustType VARCHAR(30) NOT NULL,
     pizza_PizzaState VARCHAR(30),
     pizza_PizzaDate DATETIME,
     pizza_CustPrice DECIMAL(5,2),
     pizza_BusPrice DECIMAL(5,2),
     ordertable_OrderID INT,
     FOREIGN KEY(ordertable_OrderID) REFERENCES ordertable(ordertable_OrderID),
-    FOREIGN KEY(pizza_Size) REFERENCES baseprice(baseprice_Size),
-    FOREIGN KEY(pizza_CrustType) REFERENCES baseprice(baseprice_CrustType)
+    FOREIGN KEY(pizza_Size) REFERENCES baseprice(baseprice_Size)
+	-- FOREIGN KEY(pizza_CrustType) REFERENCES baseprice(baseprice_CrustType)
 );
 
 CREATE TABLE pizza_topping
