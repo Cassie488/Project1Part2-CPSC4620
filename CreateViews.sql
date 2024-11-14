@@ -8,7 +8,7 @@ CREATE VIEW ToppingPopularity AS
 	ORDER BY ToppingCount;
         
 /*CREATE VIEW ProfitByPizza AS 
-	SELECT 
+	SELECT test
 	FROM ;
 
 CREATE VIEW ProfitByOrderType AS 
