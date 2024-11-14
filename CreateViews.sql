@@ -8,8 +8,18 @@ CREATE VIEW ToppingPopularity AS
 	ORDER BY ToppingCount;
         
 /*CREATE VIEW ProfitByPizza AS 
-	SELECT test
-	FROM ;
+	SELECT 
+		pizza.pizza_Size AS Size,
+		pizza.pizza_CrustType AS Crust,
+		(pizza.pizza_CustPrice - pizza.pizza_BusPrice) AS Profit,
+		DATE_FORMAT(ordertable.ordertable_OrderDateTime, "%m/%Y") AS OrderMonth
+	FROM 
+		pizza
+		JOIN ordertable ON pizza.ordertable_OrderID = ordertable.ordertable.OrderID
+	GROUP BY
+		OrderMonth
+	ORDER BY
+		Profit DESC; 
 
 CREATE VIEW ProfitByOrderType AS 
 	SELECT 
