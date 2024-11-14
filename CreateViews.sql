@@ -23,4 +23,42 @@ CREATE VIEW ToppingPopularity AS
 
 CREATE VIEW ProfitByOrderType AS 
 	SELECT 
-	FROM ;
+		ordertable_OrderType AS customerType,
+		DATE_FORMAT(ordertable.ordertable_OrderDateTime, "%m/%Y") AS OrderMonth,
+		ordertable_CustPrice AS TotalOrderPrice, 
+		ordertable_BusPrice AS TotalOrderCost, 
+		(ordertable_CustPrice - ordertable_BusPrice) AS Profit
+	FROM 
+			SELECT 
+				ordertable_OrderType AS customerType,
+				DATE_FORMAT(ordertable.ordertable_OrderDateTime, "%m/%Y") AS OrderMonth,
+				ordertable_CustPrice AS TotalOrderPrice, 
+				ordertable_BusPrice AS TotalOrderCost, 
+				(ordertable_CustPrice - ordertable_BusPrice) AS Profit
+			FROM
+				ordertable
+			GROUP BY
+				customerType, OrderMonth
+
+		UNION ALL
+
+			SELECT
+				NULL,
+				'Grand Total',
+				SUM(ordertable_CustPrice),
+				SUM(ordertable_BusPrice),
+				SUM(((ordertable_CustPrice - ordertable_BusPrice))
+			FROM
+				ordertable
+	GROUP BY
+		customerType, OrderMonth
+	ORDER BY
+		CASE
+			WHEN OrderMonth = 'Grand Total' THEN 1
+			ELSE 0
+		END,
+		customerType, 
+		Profit;
+		
+	
+	;
