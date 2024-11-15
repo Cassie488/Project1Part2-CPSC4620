@@ -48,3 +48,86 @@ VALUES
 ('Specialty Pizza','1.50',FALSE),
 ('Happy Hour','0.10',TRUE),
 ('Gameday Special','0.20',TRUE);
+
+INSERT INTO customer (customer_FName, customer_LName, customer_PhoneNum)
+VALUES
+('Andrew', 'Wilkes-Krier', '864-254-5861'),
+('Matt', 'Engers', '864-474-9953'),
+('Frank', 'Turner', '864-232-8944'),
+('Milo', 'Auckerman', ' 864-878-5679');
+
+-- Order One --
+INSERT INTO ordertable (ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_isComplete)
+VALUES
+('dinein', '2024-03-05 12:03:00', '19.75', '3.68', '1');
+
+INSERT INTO dinein (ordertable_OrderID, dinein_TableNum)
+(SELECT ordertable_OrderID, '21' FROM ordertable
+WHERE ordertable.ordertable_OrderType = 'dinein' AND ordertable.ordertable_OrderDateTime = '2024-03-05 12:03:00');
+
+INSERT INTO pizza (pizza_Size, pizza_CrustType, pizza_PizzaState,  pizza_PizzaDate,  pizza_CustPrice, pizza_BusPrice, ordertable_OrderID)
+(SELECT 'Large', 'Thin', 'complete', ordertable_OrderDateTime, '19.75', '3.68', ordertable_OrderID FROM ordertable
+WHERE ordertable.ordertable_OrderType = 'dinein' AND ordertable.ordertable_OrderDateTime = '2024-03-05 12:03:00');
+
+INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble)
+(SELECT pizza_PizzaID, '13', '1' FROM pizza WHERE pizza.pizza_Size = 'Large' AND pizza.pizza_CrustType = 'Thin');
+
+INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble)
+(SELECT pizza_PizzaID, '1', '0' FROM pizza WHERE pizza.pizza_Size = 'Large' AND pizza.pizza_CrustType = 'Thin');
+
+INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble)
+(SELECT pizza_PizzaID, '2', '0' FROM pizza WHERE pizza.pizza_Size = 'Large' AND pizza.pizza_CrustType = 'Thin');
+
+INSERT INTO pizza_discount (pizza_PizzaID, discount_DiscountID)
+(SELECT pizza_PizzaID, discount_DiscountID FROM pizza JOIN discount WHERE pizza.pizza_PizzaDate = '2024-03-05 12:03:00' AND discount.discount_DiscountName = 'Lunch Special Large');
+
+-- Order Two -- 
+INSERT INTO ordertable (ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_isComplete)
+VALUES
+('dinein', '2024-04-03 12:05:00', '19.78', '4.63', '1');
+
+INSERT INTO dinein (ordertable_OrderID, dinein_TableNum)
+(SELECT ordertable_OrderID, '4' FROM ordertable
+WHERE ordertable.ordertable_OrderType = 'dinein' AND ordertable.ordertable_OrderDateTime = '2024-04-03 12:05:00');
+
+INSERT INTO pizza (pizza_Size, pizza_CrustType, pizza_PizzaState,  pizza_PizzaDate,  pizza_CustPrice, pizza_BusPrice, ordertable_OrderID)
+(SELECT 'Medium', 'Pan', 'complete', ordertable_OrderDateTime, '12.85', '3.23', ordertable_OrderID FROM ordertable
+WHERE ordertable.ordertable_OrderType = 'dinein' AND ordertable.ordertable_OrderDateTime = '2024-04-03 12:05:00');
+
+INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble)
+(SELECT pizza_PizzaID, '15', '0' FROM pizza WHERE pizza.pizza_Size = 'Medium' AND pizza.pizza_CrustType = 'Pan');
+
+INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble)
+(SELECT pizza_PizzaID, '9', '0' FROM pizza WHERE pizza.pizza_Size = 'Medium' AND pizza.pizza_CrustType = 'Pan');
+
+INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble)
+(SELECT pizza_PizzaID, '7', '0' FROM pizza WHERE pizza.pizza_Size = 'Medium' AND pizza.pizza_CrustType = 'Pan');
+
+INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble)
+(SELECT pizza_PizzaID, '8', '0' FROM pizza WHERE pizza.pizza_Size = 'Medium' AND pizza.pizza_CrustType = 'Pan');
+
+INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble)
+(SELECT pizza_PizzaID, '12', '0' FROM pizza WHERE pizza.pizza_Size = 'Medium' AND pizza.pizza_CrustType = 'Pan');
+
+INSERT INTO pizza_discount (pizza_PizzaID, discount_DiscountID)
+(SELECT pizza_PizzaID, discount_DiscountID FROM pizza JOIN discount 
+WHERE pizza.pizza_PizzaDate = '2024-04-03 12:05:00' AND pizza.pizza_Size = 'Medium' AND pizza.pizza_CrustType = 'Pan' AND discount.discount_DiscountName = 'Lunch Special Medium');
+
+INSERT INTO pizza_discount (pizza_PizzaID, discount_DiscountID)
+(SELECT pizza_PizzaID, discount_DiscountID FROM pizza JOIN discount 
+WHERE pizza.pizza_PizzaDate = '2024-04-03 12:05:00' AND pizza.pizza_Size = 'Medium' AND pizza.pizza_CrustType = 'Pan' AND discount.discount_DiscountName = 'Specialty Pizza');
+
+INSERT INTO pizza (pizza_Size, pizza_CrustType, pizza_PizzaState,  pizza_PizzaDate,  pizza_CustPrice, pizza_BusPrice, ordertable_OrderID)
+(SELECT 'Small', 'Original', 'complete', ordertable_OrderDateTime, '6.93', '1.40', ordertable_OrderID FROM ordertable
+WHERE ordertable.ordertable_OrderType = 'dinein' AND ordertable.ordertable_OrderDateTime = '2024-04-03 12:05:00');
+
+INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble)
+(SELECT pizza_PizzaID, '13', '0' FROM pizza WHERE pizza.pizza_PizzaDate = '2024-04-03 12:05:00');
+
+INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble)
+(SELECT pizza_PizzaID, '4', '0' FROM pizza WHERE pizza.pizza_Size = 'Small' AND pizza.pizza_CrustType = 'Original');
+
+INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble)
+(SELECT pizza_PizzaID, '12', '0' FROM pizza WHERE pizza.pizza_Size = 'Small' AND pizza.pizza_CrustType = 'Original');
+
+-- Order Three --
