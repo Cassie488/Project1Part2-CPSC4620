@@ -1,49 +1,96 @@
-CREATE PROCEDURE profitOfPizza()
+DROP PROCEDURE IF EXISTS PROCEDURE1;
+delimiter $$
+CREATE PROCEDURE PROCEDURE1()
 BEGIN
     
 END;
+$$
+delimeter ;
 
 
-
-CREATE PROCEDURE toppingsForView()
+DROP PROCEDURE IF EXISTS PROCEDURE2;
+delimiter $$
+CREATE PROCEDURE PROCEDURE2()
 BEGIN
     
 END;
+$$
+delimeter ;
 
-CREATE FUNCTION getMonthYearFromDate()
+
+delimiter $$
+CREATE FUNCTION no_of_years(date1 date) RETURNS int DETERMINISTIC
 BEGIN
-	
-END;
+ DECLARE date2 DATE;
+  Select current_date()into date2;
+  RETURN year(date2)-year(date1);
+END 
+$$
+delimiter ;
 
-CREATE FUNCTION getMonthYearFromDate()
+delimiter $$
+CREATE FUNCTION no_of_years(date1 date) RETURNS int DETERMINISTIC
 BEGIN
-	
+ DECLARE date2 DATE;
+  Select current_date()into date2;
+  RETURN year(date2)-year(date1);
+END 
+$$
+delimiter ;
+
+DROP TRIGGER IF EXISTS UPDATE1
+delimiter $$
+CREATE TRIGGER UPDATE1
+AFTER UPDATE ON pizza
+FOR EACH ROW
+BEGIN
+   SELECT
+	pizza)
 END;
+$$
+delimiter;
 
-CREATE TRIGGER updatetriggerfor
-ON Employee
-FOR UPDATE
-AS
+DROP TRIGGER IF EXISTS UPDATE2
+delimiter $$
+CREATE TRIGGER UPDATE2
+AFTER UPDATE ON pizza
+FOR EACH ROW
+BEGIN
+   SELECT
+	pizza)
+END;
+$$
+delimiter;
 
-GO;
+DROP TRIGGER IF EXISTS INSERT1
+CREATE TRIGGER INSERT1
+AFTER INSERT ON pizza
+FOR EACH ROW
+BEGIN
+   SELECT
+	pizza)
+END;
+$$
+delimiter;
 
-CREATE TRIGGER updatetriggerfor
-ON Employee
-FOR UPDATE
-AS
+DROP TRIGGER IF EXISTS inserttriggerforpizzabusprice
+CREATE TRIGGER inserttriggerforpizzabusprice
+AFTER INSERT ON pizza
+FOR EACH ROW
+BEGIN
+   SELECT
+	pizza)
+END;
+$$
+delimiter;
 
-GO;
-
-CREATE TRIGGER inserttriggerfor
-ON Employee
-FOR INSERT
-AS
-   
-GO
-
-CREATE TRIGGER inserttriggerfor
-ON Employee
-FOR INSERT
-AS
-   
-GO
+DROP TRIGGER IF EXISTS INSERT2
+CREATE TRIGGER INSERT2
+AFTER INSERT ON pizza
+FOR EACH ROW
+BEGIN
+   SELECT
+	pizza)
+END;
+$$
+delimiter;
