@@ -1,46 +1,70 @@
-DROP PROCEDURE IF EXISTS PROCEDURE1;
-delimiter $$
-CREATE PROCEDURE PROCEDURE1()
+DROP PROCEDURE IF EXISTS getOrderDiscount;
+DELIMITER $$
+CREATE PROCEDURE GetOrderDiscount(IN idForDiscount INT, OUT discountReturn INT)
 BEGIN
-    
+	SET discountReturn = (
+		SELECT
+			discount_Amount
+		FROM
+			discount
+		WHERE
+			discount_discountID = 
+				(SELECT
+					discount_DiscountID
+				FROM
+					order_discount
+				WHERE
+					ordertable_OrderID = idForDiscount
+				)
+	);
 END;
 $$
-delimeter ;
+DELIMITER ;
 
 
-DROP PROCEDURE IF EXISTS PROCEDURE2;
-delimiter $$
-CREATE PROCEDURE PROCEDURE2()
+DROP PROCEDURE IF EXISTS getPizzaDiscount;
+DELIMITER $$
+CREATE PROCEDURE GetPizzaDiscount(IN idForDiscount INT, OUT discountReturn INT)
 BEGIN
-    
+	SET discountReturn = (
+		SELECT
+			discount_Amount
+		FROM
+			discount
+		WHERE
+			discount_discountID = 
+				(SELECT
+					discount_DiscountID
+				FROM
+					pizza_discount
+				WHERE
+					pizza_PizzaID = idForDiscount
+				)
+	);
 END;
 $$
-delimeter ;
+DELIMITER ;
 
 
-delimiter $$
-CREATE FUNCTION no_of_years(date1 date) RETURNS int DETERMINISTIC
+DELIMITER $$
+CREATE FUNCTION CalcOrderPrice(date1 date) RETURNS int DETERMINISTIC
 BEGIN
- DECLARE date2 DATE;
-  Select current_date()into date2;
-  RETURN year(date2)-year(date1);
+	
 END 
 $$
-delimiter ;
+DELIMITER ;
 
-delimiter $$
-CREATE FUNCTION no_of_years(date1 date) RETURNS int DETERMINISTIC
+DELIMITER $$
+CREATE FUNCTION CalcPizzaPrice(date1 date) RETURNS int DETERMINISTIC
 BEGIN
- DECLARE date2 DATE;
-  Select current_date()into date2;
-  RETURN year(date2)-year(date1);
+	
 END 
 $$
-delimiter ;
+DELIMITER ;
 
-DROP TRIGGER IF EXISTS UPDATE1
-delimiter $$
-CREATE TRIGGER UPDATE1
+DROP TRIGGER IF EXISTS UpdatePizzaPrice
+DELIMITER $$
+CREATE TRIGGER UpdatePizzaPrice
 AFTER UPDATE ON pizza
 FOR EACH ROW
 BEGIN
@@ -48,11 +72,11 @@ BEGIN
 	pizza)
 END;
 $$
-delimiter;
+DELIMITER;
 
-DROP TRIGGER IF EXISTS UPDATE2
-delimiter $$
-CREATE TRIGGER UPDATE2
+DROP TRIGGER IF EXISTS UpdateBasePrice
+DELIMITER $$
+CREATE TRIGGER UpdateBasePrice
 AFTER UPDATE ON pizza
 FOR EACH ROW
 BEGIN
@@ -60,37 +84,40 @@ BEGIN
 	pizza)
 END;
 $$
-delimiter;
+DELIMITER;
 
-DROP TRIGGER IF EXISTS INSERT1
-CREATE TRIGGER INSERT1
+DROP TRIGGER IF EXISTS TopppingsAndInventory
+DELIMITER $$
+CREATE TRIGGER TopppingsAndInventory
 AFTER INSERT ON pizza
 FOR EACH ROW
 BEGIN
-   SELECT
-	pizza)
+	IF (
+		SELECT 
+			topping_MinINVT,
+			topping_CurINVT
+		FROM 
+			topping
+		WHERE 
+			topping_MinINVT > topping_CurINVT
+		) 
+		THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'There are not enough toppings';
+	 END IF;
 END;
 $$
-delimiter;
+DELIMITER;
 
-DROP TRIGGER IF EXISTS inserttriggerforpizzabusprice
-CREATE TRIGGER inserttriggerforpizzabusprice
-AFTER INSERT ON pizza
-FOR EACH ROW
+DROP TRIGGER IF EXISTS InsertPhoneNumber
+DELIMITER $$
+CREATE TRIGGER InsertPhoneNumber
+AFTER INSERT 
+ON pizza FOR EACH ROW
 BEGIN
-   SELECT
-	pizza)
+	SELECT
+		replace(customer_PhoneNum, '-', '') customer_PhoneNum
+	FROM
+		customer
 END;
 $$
-delimiter;
-
-DROP TRIGGER IF EXISTS INSERT2
-CREATE TRIGGER INSERT2
-AFTER INSERT ON pizza
-FOR EACH ROW
-BEGIN
-   SELECT
-	pizza)
-END;
-$$
-delimiter;
+DELIMITER;
