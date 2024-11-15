@@ -47,8 +47,34 @@ DELIMITER ;
 
 
 DELIMITER $$
-CREATE FUNCTION CalcOrderPrice(date1 date) RETURNS int DETERMINISTIC
+CREATE FUNCTION CalcOrderPrice(orderID INT, discount INT) RETURNS int DETERMINISTIC
 BEGIN
+	DECLARE totalPrice INT;
+	DECLARE totalPriceWithoutDiscount INT;
+	SET totalPriceWithoutDiscount = (
+		SELECT
+			SUM(ordertable_CustPrice) 
+		FROM 
+			ordertable
+		WHERE
+			ordertable_OrderID = orderID
+	);
+	SET discountPercentage = (
+		SELECT
+			discount_IsPercent
+		FROM 
+			discount
+			JOIN order_discount ON discount.discount_DiscountID = order_discount.discount_DiscountID
+		WHERE
+			ordertable_OrderID = orderID
+	);
+
+	IF(discountPercentage = 1) THEN
+		SET totalPrice = totalPriceWithoutDiscount * (1 - discount);
+	ELSE
+		SET totalPrice = totalPriceWithoutDiscount - discount; 
+
+	RETURN (totalPrice)
 	
 END 
 $$
@@ -57,7 +83,7 @@ DELIMITER ;
 DELIMITER $$
 CREATE FUNCTION CalcPizzaPrice(date1 date) RETURNS int DETERMINISTIC
 BEGIN
-	
+	base price crust + price of each topping + if double mult by 2 - any discounts and if it is a percent multiply
 END 
 $$
 DELIMITER ;
