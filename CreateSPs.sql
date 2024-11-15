@@ -73,6 +73,7 @@ BEGIN
 		SET totalPrice = totalPriceWithoutDiscount * (1 - discount);
 	ELSE
 		SET totalPrice = totalPriceWithoutDiscount - discount; 
+	END IF;
 
 	RETURN (totalPrice)
 	
