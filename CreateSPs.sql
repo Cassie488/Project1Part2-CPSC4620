@@ -82,12 +82,13 @@ $$
 DELIMITER ;
 
 DELIMITER $$
-CREATE FUNCTION CalcPizzaPrice(pizzaID INT, discount INT) RETURNS int DETERMINISTIC
+CREATE FUNCTION CalcPizzaPrice(pizzaID INT) RETURNS int DETERMINISTIC
 BEGIN
 	DECLARE totalPrice INT;
 	DECLARE totalToppings INT;
 	DECLARE totalPizza INT;
 	DECLARE tempTopping INT;
+	DECLARE discount INT;
 	SET totalPizza = (
 		SELECT
 			baseprice.baseprice_CustPrice
@@ -121,6 +122,17 @@ BEGIN
 			pizza_discount.pizza_PizzaID = orderID
 	);
 
+	SET discount = (
+		SELECT
+			discount.discount_Amount
+		FROM 
+			discount
+			JOIN pizza_discount ON discount.discount_DiscountID = pizza_discount.discount_DiscountID
+		WHERE
+			pizza_discount.pizza_PizzaID = orderID
+	);
+
+
 	IF(discountPercentage = 1) THEN
 		SET totalPrice = totalToppings + totalPizza * (1 - discount);
 	ELSE
@@ -138,20 +150,25 @@ CREATE TRIGGER UpdatePizzaPrice
 AFTER UPDATE ON pizza
 FOR EACH ROW
 BEGIN
-   SELECT
-	pizza)
+   IF(new.baseprice_Size != old.baseprice_Size) THEN
+		SELECT CalcPizzaPrice(new.pizzaID INT);
+	ELSE IF (new.baseprice_Size != old.baseprice_Size)
+		SELECT CalcPizzaPrice(new.pizzaID INT);
+	END IF;
 END;
 $$
 DELIMITER;
 
-DROP TRIGGER IF EXISTS UpdateBasePrice
+DROP TRIGGER IF EXISTS pizzaToppings
 DELIMITER $$
-CREATE TRIGGER UpdateBasePrice
-AFTER UPDATE ON pizza
+CREATE TRIGGER pizzaToppings
+AFTER UPDATE ON pizza_toppinfs
 FOR EACH ROW
 BEGIN
-   SELECT
-	pizza)
+	IF(new.pizza_topping_IsDouble != old.pizza_topping_IsDouble) THEN
+		SELECT CalcPizzaPrice(new.pizzaID INT);
+	END IF;
+		
 END;
 $$
 DELIMITER;
