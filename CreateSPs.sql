@@ -85,8 +85,10 @@ DELIMITER $$
 CREATE FUNCTION CalcPizzaPrice(pizzaID INT, discount INT) RETURNS int DETERMINISTIC
 BEGIN
 	DECLARE totalPrice INT;
-	DECLARE totalPriceWithoutDiscount INT;
-	SET totalPriceWithoutDiscount = (
+	DECLARE totalToppings INT;
+	DECLARE totalPizza INT;
+	DECLARE tempTopping INT;
+	SET totalPizza = (
 		SELECT
 			baseprice.baseprice_CustPrice
 		FROM 
@@ -96,6 +98,19 @@ BEGIN
 			baseprice.baseprice_Size = pizza.pizza_Size
 			AND baseprice.baseprice_CrustType = pizza.CrustType
 	);
+
+	SET totalToppings = (
+		SELECT
+			SUM(IF(pizza_topping.pizza_topping_IsDouble = 1, topping.topping_CustPrice * 2, topping.topping_CustPrice)			
+		FROM
+			topping
+			JOIN pizza_topping ON pizza_topping.topping_TopID = topping.topping_TopID
+			JOIN pizza ON pizza_topping.pizza_PizzaID = pizza.pizza_PizzaID
+		WHERE
+			pizza.pizza_PizzaID = pizzaID
+			AND pizza_top.ping.topping_TopID = topping.topping_TopID
+	);
+
 	SET discountPercentage = (
 		SELECT
 			discount.discount_IsPercent
@@ -107,13 +122,12 @@ BEGIN
 	);
 
 	IF(discountPercentage = 1) THEN
-		SET totalPrice = totalPriceWithoutDiscount * (1 - discount);
+		SET totalPrice = totalToppings + totalPizza * (1 - discount);
 	ELSE
-		SET totalPrice = totalPriceWithoutDiscount - discount; 
+		SET totalPrice = totalToppings + totalPizza - discount; 
 	END IF;
 
 	RETURN (totalPrice);
-	base price crust + price of each topping + if double mult by 2 - any discounts and if it is a percent multiply
 END 
 $$
 DELIMITER ;
