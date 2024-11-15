@@ -3,7 +3,7 @@
 
 CREATE VIEW ToppingPopularity AS 
 	SELECT  topping.topping_TopName AS Topping, 
-			ROUND(COUNTz(pizza_topping.topping_TopID),0) AS ToppingCount
+			ROUND(COUNT(pizza_topping.topping_TopID),0) AS ToppingCount
 	FROM topping LEFT JOIN pizza_topping ON topping.topping_TopID = pizza_topping.topping_TopID
     GROUP BY topping.topping_TopID 
 	ORDER BY ToppingCount DESC, Topping ASC;
@@ -23,40 +23,31 @@ CREATE VIEW ProfitByPizza AS
 
 CREATE VIEW ProfitByOrderType AS 
 	SELECT 
-		customerType,
-		OrderMonth,
-		TotalOrderPrice, 
-		TotalOrderCost, 
-		Profit
+		TEMP1.customerType,
+		TEMP1.OrderMonth,
+		TEMP1.TotalOrderPrice, 
+		TEMP1.TotalOrderCost, 
+		TEMP1.Profit
 	FROM 
 			(SELECT 
 				ordertable_OrderType AS customerType,
 				DATE_FORMAT(ordertable.ordertable_OrderDateTime, "%m/%Y") AS OrderMonth,
-				ordertable_CustPrice AS TotalOrderPrice, 
-				ordertable_BusPrice AS TotalOrderCost, 
-				(ordertable_CustPrice - ordertable_BusPrice) AS Profit
+				SUM(ordertable_CustPrice) AS TotalOrderPrice, 
+				SUM(ordertable_BusPrice) AS TotalOrderCost, 
+				(ordertable_CustPrice - ordertable_BusPrice) AS Profit, 
+                1 as o
 			FROM
 				ordertable
 			GROUP BY
-				ordertable_OrderType, DATE_FORMAT(ordertable.ordertable_OrderDateTime, "%m/%Y")) TEMP1
-
-		UNION ALL
-
-			(SELECT
-				NULL,
-				'Grand Total',
-				SUM(ordertable_CustPrice),
-				SUM(ordertable_BusPrice),
-				SUM(((ordertable_CustPrice - ordertable_BusPrice)))
-			FROM
-				ordertable
-			GROUP BY
-				ordertable_OrderType, DATE_FORMAT(ordertable.ordertable_OrderDateTime, "%m/%Y")) 
+				ordertable_OrderType, DATE_FORMAT(ordertable.ordertable_OrderDateTime, "%m/%Y")
+			UNION SELECT 
+				NULL, 
+                'Grand Total', 
+                SUM(ordertable_CustPrice), 
+                SUM(ordertable_BusPrice), 
+                SUM((ordertable_CustPrice - ordertable_BusPrice)),
+                2 as o
+                FROM ordertable ) TEMP1
 	ORDER BY
-		(CASE
-			WHEN OrderMonth = 'Grand Total' THEN 1
-			ELSE 0
-		END),
-		customerType, 
-		Profit;
+		o, customerType, OrderMonth, Profit;
 		

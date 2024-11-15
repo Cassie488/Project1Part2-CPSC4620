@@ -113,7 +113,7 @@ VALUES
 -- Order Three --
 INSERT INTO ordertable (ordertable_OrderID, customer_CustID, ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_isComplete)
 VALUES
-('3', '1', 'pickup', '2024-03-03 9:30:00', '89.28', '19.80', '1');
+('3', '1', 'pickup', '2024-03-03 21:30:00', '89.28', '19.80', '1');
 
 INSERT INTO pickup
 VALUES
@@ -121,12 +121,12 @@ VALUES
 
 INSERT INTO pizza
 VALUES
-('4', 'Large', 'Original', 'completed', '2024-03-03 9:30:00', '14.88', '3.30', '3'),
-('5', 'Large', 'Original', 'completed', '2024-03-03 9:30:00', '14.88', '3.30', '3'),
-('6', 'Large', 'Original', 'completed', '2024-03-03 9:30:00', '14.88', '3.30', '3'),
-('7', 'Large', 'Original', 'completed', '2024-03-03 9:30:00', '14.88', '3.30', '3'),
-('8', 'Large', 'Original', 'completed', '2024-03-03 9:30:00', '14.88', '3.30', '3'),
-('9', 'Large', 'Original', 'completed', '2024-03-03 9:30:00', '14.88', '3.30', '3');
+('4', 'Large', 'Original', 'completed', '2024-03-03 21:30:00', '14.88', '3.30', '3'),
+('5', 'Large', 'Original', 'completed', '2024-03-03 21:30:00', '14.88', '3.30', '3'),
+('6', 'Large', 'Original', 'completed', '2024-03-03 21:30:00', '14.88', '3.30', '3'),
+('7', 'Large', 'Original', 'completed', '2024-03-03 21:30:00', '14.88', '3.30', '3'),
+('8', 'Large', 'Original', 'completed', '2024-03-03 21:30:00', '14.88', '3.30', '3'),
+('9', 'Large', 'Original', 'completed', '2024-03-03 21:30:00', '14.88', '3.30', '3');
 
 INSERT INTO pizza_topping
 VALUES
@@ -146,7 +146,7 @@ VALUES
 -- Order Four -- 
 INSERT INTO ordertable (ordertable_OrderID, customer_CustID, ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_isComplete)
 VALUES
-('4', '1', 'delivery', '2024-04-20 7:11:00', '89.28', '23.62', '1');
+('4', '1', 'delivery', '2024-04-20 19:11:00', '89.28', '23.62', '1');
 
 INSERT INTO delivery 
 VALUES
@@ -154,9 +154,9 @@ VALUES
 
 INSERT INTO pizza
 VALUES
-('10', 'XLarge', 'Original', 'completed', '2024-04-20 7:11:00', '27.94', '9.19', '4'),
-('11', 'XLarge', 'Original', 'completed', '2024-04-20 7:11:00', '31.50', '6.25', '4'),
-('12', 'XLarge', 'Original', 'completed', '2024-04-20 7:11:00', '26.75', '8.18', '4');
+('10', 'XLarge', 'Original', 'completed', '2024-04-20 19:11:00', '27.94', '9.19', '4'),
+('11', 'XLarge', 'Original', 'completed', '2024-04-20 19:11:00', '31.50', '6.25', '4'),
+('12', 'XLarge', 'Original', 'completed', '2024-04-20 19:11:00', '26.75', '8.18', '4');
 
 INSERT INTO pizza_topping
 VALUES
@@ -180,7 +180,7 @@ VALUES
 -- Order Five --
 INSERT INTO ordertable (ordertable_OrderID, customer_CustID, ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_isComplete)
 VALUES
-('5', '2', 'pickup', '2024-03-02 5:30:00', '27.45', '7.88', '1');
+('5', '2', 'pickup', '2024-03-02 17:30:00', '27.45', '7.88', '1');
 
 INSERT INTO pickup
 VALUES
@@ -188,7 +188,7 @@ VALUES
 
 INSERT INTO pizza
 VALUES
-('13', 'XLarge', 'Gluten-Free', 'completed', '2024-03-02 5:30:00', '27.45', '7.88', '5');
+('13', 'XLarge', 'Gluten-Free', 'completed', '2024-03-02 17:30:00', '27.45', '7.88', '5');
 
 INSERT INTO pizza_topping
 VALUES
@@ -206,7 +206,7 @@ VALUES
 -- Order Six --
 INSERT INTO ordertable (ordertable_OrderID, customer_CustID, ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_isComplete)
 VALUES
-('6', '3', 'delivery', '2024-03-02 6:17:00', '25.81', '4.24', '1');
+('6', '3', 'delivery', '2024-03-02 18:17:00', '25.81', '4.24', '1');
 
 INSERT INTO delivery 
 VALUES
@@ -214,7 +214,7 @@ VALUES
 
 INSERT INTO pizza
 VALUES
-('14', 'Large', 'Thin', 'completed', '2024-03-02 6:17:00', '25.81', '4.24', '6');
+('14', 'Large', 'Thin', 'completed', '2024-03-02 18:17:00', '25.81', '4.24', '6');
 
 INSERT INTO pizza_topping
 VALUES
@@ -227,7 +227,7 @@ VALUES
 -- Order Seven --
 INSERT INTO ordertable (ordertable_OrderID, customer_CustID, ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_isComplete)
 VALUES
-('7', '4', 'delivery', '2024-04-13 8:32:00', '37.25', '6.00', '1');
+('7', '4', 'delivery', '2024-04-13 20:32:00', '37.25', '6.00', '1');
 
 INSERT INTO delivery 
 VALUES
@@ -235,8 +235,8 @@ VALUES
 
 INSERT INTO pizza
 VALUES
-('15', 'Large', 'Thin', 'completed', '2024-04-13 8:32:00', '18.00', '2.75', '7'),
-('16', 'Large', 'Thin', 'completed', '2024-04-13 8:32:00', '19.25', '3.25', '7');
+('15', 'Large', 'Thin', 'completed', '2024-04-13 20:32:00', '18.00', '2.75', '7'),
+('16', 'Large', 'Thin', 'completed', '2024-04-13 20:32:00', '19.25', '3.25', '7');
 
 INSERT INTO pizza_topping
 VALUES
