@@ -61,12 +61,12 @@ BEGIN
 	);
 	SET discountPercentage = (
 		SELECT
-			discount_IsPercent
+			discount.discount_IsPercent
 		FROM 
 			discount
 			JOIN order_discount ON discount.discount_DiscountID = order_discount.discount_DiscountID
 		WHERE
-			ordertable_OrderID = orderID
+			order_discount.ordertable_OrderID = orderID
 	);
 
 	IF(discountPercentage = 1) THEN
@@ -75,15 +75,44 @@ BEGIN
 		SET totalPrice = totalPriceWithoutDiscount - discount; 
 	END IF;
 
-	RETURN (totalPrice)
+	RETURN (totalPrice);
 	
 END 
 $$
 DELIMITER ;
 
 DELIMITER $$
-CREATE FUNCTION CalcPizzaPrice(date1 date) RETURNS int DETERMINISTIC
+CREATE FUNCTION CalcPizzaPrice(pizzaID INT, discount INT) RETURNS int DETERMINISTIC
 BEGIN
+	DECLARE totalPrice INT;
+	DECLARE totalPriceWithoutDiscount INT;
+	SET totalPriceWithoutDiscount = (
+		SELECT
+			baseprice.baseprice_CustPrice
+		FROM 
+			baseprice,
+			pizza
+		WHERE
+			baseprice.baseprice_Size = pizza.pizza_Size
+			AND baseprice.baseprice_CrustType = pizza.CrustType
+	);
+	SET discountPercentage = (
+		SELECT
+			discount.discount_IsPercent
+		FROM 
+			discount
+			JOIN pizza_discount ON discount.discount_DiscountID = pizza_discount.discount_DiscountID
+		WHERE
+			pizza_discount.pizza_PizzaID = orderID
+	);
+
+	IF(discountPercentage = 1) THEN
+		SET totalPrice = totalPriceWithoutDiscount * (1 - discount);
+	ELSE
+		SET totalPrice = totalPriceWithoutDiscount - discount; 
+	END IF;
+
+	RETURN (totalPrice);
 	base price crust + price of each topping + if double mult by 2 - any discounts and if it is a percent multiply
 END 
 $$
