@@ -67,7 +67,8 @@ CREATE TABLE pizza
     pizza_BusPrice DECIMAL(5,2),
     ordertable_OrderID INT,
     FOREIGN KEY(ordertable_OrderID) REFERENCES ordertable(ordertable_OrderID),
-     FOREIGN KEY(pizza_Size, pizza_CrustType) REFERENCES baseprice(baseprice_Size, pizza_CrustType)
+    FOREIGN KEY(pizza_Size, pizza_CrustType) REFERENCES baseprice(baseprice_Size, baseprice_CrustType)
+	-- FOREIGN KEY(pizza_CrustType) REFERENCES baseprice(baseprice_CrustType)
 );
 
 CREATE TABLE pizza_topping

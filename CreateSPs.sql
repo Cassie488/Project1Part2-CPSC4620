@@ -1,5 +1,4 @@
-CREATE PROCEDURE profitOfPizza
-AS
+CREATE PROCEDURE profitOfPizza()
 BEGIN
     SELECT 
 		pizza.pizza_Size AS Size,
@@ -17,8 +16,7 @@ END;
 
 
 
-CREATE PROCEDURE toppingsForView
-AS
+CREATE PROCEDURE toppingsForView()
 BEGIN
     SELECT  
         topping.topping_TopName AS Topping, 
@@ -30,12 +28,5 @@ BEGIN
         ToppingCount
 END;
 
-CREATE FUNCTION getMonthYearFromDate(date1 date) RETURNS VARCHAR(20) DETERMINISTIC
-	BEGIN
-		DECLARE functionMonthDay VARCHAR(20);
-
-		DATE_FORMAT(date1, "%m/%Y");
-
-	END$$
-
-DELIMITER;
+CREATE FUNCTION getMonthYearFromDate(date1 DATE) RETURNS VARCHAR(20) DETERMINISTIC
+	RETURN(DATE_FORMAT(date1, "%m/%Y"));
