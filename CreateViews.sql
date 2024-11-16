@@ -32,21 +32,12 @@ CREATE VIEW ProfitByOrderType AS
 			(SELECT 
 				ordertable_OrderType AS customerType,
 				DATE_FORMAT(ordertable.ordertable_OrderDateTime, "%m/%Y") AS OrderMonth,
-				SUM(ordertable_CustPrice) AS FullPrice, 
+				SUM(ordertable_CustPrice) AS TotalOrderPrice, 
 				SUM(ordertable_BusPrice) AS TotalOrderCost, 
 				(ordertable_CustPrice - ordertable_BusPrice) AS Profit, 
-				discount.discount_Amount AS discountAmount,
-                1 as o,
-				CASE WHEN discount.discount_IsPercent = 1 
-					THEN
-						FullPrice * (1-discountAmount)
-					ELSE
-						FullPrice - discountAmount
-				END as TotalOrderPrice
+                1 as o
 			FROM
 				ordertable
-				JOIN order_discount ON order_discount.ordertable_OrderID = ordertable.ordertable_OrderID
-				JOIN discount ON discount.discount_DiscountID = order_discount.discount_DiscountID
 			GROUP BY
 				ordertable_OrderType, DATE_FORMAT(ordertable.ordertable_OrderDateTime, "%m/%Y")
 			UNION SELECT 
