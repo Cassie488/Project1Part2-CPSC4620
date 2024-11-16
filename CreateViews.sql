@@ -2,11 +2,16 @@
 /*Mary Walker Felder and Cassie Phillips*/
 
 CREATE VIEW ToppingPopularity AS 
-	SELECT  topping.topping_TopName AS Topping, 
-			ROUND(COUNT(pizza_topping.topping_TopID),0) AS ToppingCount
-	FROM topping LEFT JOIN pizza_topping ON topping.topping_TopID = pizza_topping.topping_TopID
-    GROUP BY topping.topping_TopID 
-	ORDER BY ToppingCount DESC, Topping ASC;
+	SELECT  
+		topping.topping_TopName AS Topping, 
+		ROUND(COUNT(pizza_topping.topping_TopID),0) AS ToppingCount
+	FROM 
+		topping 
+		LEFT JOIN pizza_topping ON topping.topping_TopID = pizza_topping.topping_TopID
+    GROUP BY 
+		topping.topping_TopID, topping.topping_TopName 
+	ORDER BY 
+		ToppingCount DESC, Topping ASC;
         
 CREATE VIEW ProfitByPizza AS 
 	SELECT 
