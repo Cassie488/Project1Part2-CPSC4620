@@ -102,7 +102,7 @@ BEGIN
 
 	SET totalToppings = (
 		SELECT
-			SUM(IF(pizza_topping.pizza_topping_IsDouble = 1, topping.topping_CustPrice * 2, topping.topping_CustPrice)			
+			SUM(IF(pizza_topping.pizza_topping_IsDouble = 1, topping.topping_CustPrice * 2, topping.topping_CustPrice))		
 		FROM
 			topping
 			JOIN pizza_topping ON pizza_topping.topping_TopID = topping.topping_TopID
