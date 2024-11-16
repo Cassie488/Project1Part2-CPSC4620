@@ -3,9 +3,9 @@
 
 DROP VIEW ToppingPopularity;
 
--- DROP VIEW ProfitByPizza;
+DROP VIEW ProfitByPizza;
 
--- DROP VIEW ProfitByOrderType;
+DROP VIEW ProfitByOrderType;
 
 DROP TABLE dinein;
 

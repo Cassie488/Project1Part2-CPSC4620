@@ -172,39 +172,3 @@ BEGIN
 END;
 $$
 DELIMITER;
-
-DROP TRIGGER IF EXISTS TopppingsAndInventory
-DELIMITER $$
-CREATE TRIGGER TopppingsAndInventory
-AFTER INSERT ON pizza
-FOR EACH ROW
-BEGIN
-	IF (
-		SELECT 
-			topping_MinINVT,
-			topping_CurINVT
-		FROM 
-			topping
-		WHERE 
-			topping_MinINVT > topping_CurINVT
-		) 
-		THEN
-		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'There are not enough toppings';
-	 END IF;
-END;
-$$
-DELIMITER;
-
-DROP TRIGGER IF EXISTS InsertPhoneNumber
-DELIMITER $$
-CREATE TRIGGER InsertPhoneNumber
-AFTER INSERT 
-ON pizza FOR EACH ROW
-BEGIN
-	SELECT
-		replace(customer_PhoneNum, '-', '') customer_PhoneNum
-	FROM
-		customer
-END;
-$$
-DELIMITER;

@@ -51,10 +51,10 @@ VALUES
 
 INSERT INTO customer
 VALUES
-('1', 'Andrew', 'Wilkes-Krier', '864-254-5861'),
-('2', 'Matt', 'Engers', '864-474-9953'),
-('3', 'Frank', 'Turner', '864-232-8944'),
-('4', 'Milo', 'Auckerman', '864-878-5679');
+('1', 'Andrew', 'Wilkes-Krier', '8642545861'),
+('2', 'Matt', 'Engers', '8644749953'),
+('3', 'Frank', 'Turner', '8642328944'),
+('4', 'Milo', 'Auckerman', '8648785679');
 
 -- Order One --
 INSERT INTO ordertable (ordertable_OrderID, ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_isComplete)
@@ -90,8 +90,7 @@ VALUES
 
 INSERT INTO pizza
 VALUES
-('2', 'Medium', 'Pan', 'completed', '2024-04-03 12:05:00', '12.85', '3.23', '2'),
-('3', 'Small', 'Original', 'completed', '2024-04-03 12:05:00', '6.93', '1.40', '2');
+('2', 'Medium', 'Pan', 'completed', '2024-04-03 12:05:00', '12.85', '3.23', '2');
 
 INSERT INTO pizza_topping
 VALUES
@@ -99,16 +98,25 @@ VALUES
 ('2', '9', '0'),
 ('2', '7', '0'),
 ('2', '8', '0'),
-('2', '12', '0'),
+('2', '12', '0');
+
+INSERT INTO pizza_discount
+VALUES
+('2', '4');
+
+INSERT INTO pizza
+VALUES
+('3', 'Small', 'Original', 'completed', '2024-04-03 12:05:00', '6.93', '1.40', '2');
+
+INSERT INTO pizza_topping
+VALUES
 ('3', '13', '0'),
 ('3', '4', '0'),
 ('3', '12', '0');
 
-INSERT INTO pizza_discount
+INSERT INTO order_discount
 VALUES
-('2', '2'),
-('2', '4'),
-('3', '2');
+('2', '2');
 
 -- Order Three --
 INSERT INTO ordertable (ordertable_OrderID, customer_CustID, ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_isComplete)
@@ -146,7 +154,7 @@ VALUES
 -- Order Four -- 
 INSERT INTO ordertable (ordertable_OrderID, customer_CustID, ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_isComplete)
 VALUES
-('4', '1', 'delivery', '2024-04-20 19:11:00', '89.28', '23.62', '1');
+('4', '1', 'delivery', '2024-04-20 19:11:00', '68.95', '23.62', '1');
 
 INSERT INTO delivery 
 VALUES
@@ -172,10 +180,11 @@ VALUES
 
 INSERT INTO pizza_discount
 VALUES
-('10', '6'),
-('11', '6'),
-('12', '6'),
 ('11', '4');
+
+INSERT INTO order_discount
+VALUES
+('4', '6');
 
 -- Order Five --
 INSERT INTO ordertable (ordertable_OrderID, customer_CustID, ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_isComplete)
@@ -227,7 +236,7 @@ VALUES
 -- Order Seven --
 INSERT INTO ordertable (ordertable_OrderID, customer_CustID, ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_isComplete)
 VALUES
-('7', '4', 'delivery', '2024-04-13 20:32:00', '37.25', '6.00', '1');
+('7', '4', 'delivery', '2024-04-13 20:32:00', '31.66', '6.00', '1');
 
 INSERT INTO delivery 
 VALUES
@@ -244,7 +253,6 @@ VALUES
 ('16', '2', '1'), 
 ('16', '13', '0');
 
-INSERT INTO pizza_discount
+INSERT INTO order_discount
 VALUES
-('15', '1'),
-('16', '1');
+('7', '1');

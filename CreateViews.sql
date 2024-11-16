@@ -2,23 +2,18 @@
 /*Mary Walker Felder and Cassie Phillips*/
 
 CREATE VIEW ToppingPopularity AS 
-	SELECT  
-		topping.topping_TopName AS Topping, 
-		ROUND(COUNT(pizza_topping.topping_TopID),0) AS ToppingCount
-	FROM 
-		topping 
-		LEFT JOIN pizza_topping ON topping.topping_TopID = pizza_topping.topping_TopID
-    GROUP BY 
-		topping.topping_TopID, topping.topping_TopName 
-	ORDER BY 
-		ToppingCount DESC, Topping ASC;
+	SELECT  topping.topping_TopName AS Topping, 
+			(CAST(COUNT(pizza_topping.topping_TopID) AS DECIMAL(4,0))) AS ToppingCount
+	FROM topping LEFT JOIN pizza_topping ON topping.topping_TopID = pizza_topping.topping_TopID
+    GROUP BY topping.topping_TopName
+	ORDER BY ToppingCount DESC, Topping ASC;
         
 CREATE VIEW ProfitByPizza AS 
 	SELECT 
 		pizza.pizza_Size AS Size,
 		pizza.pizza_CrustType AS Crust,
 		SUM(pizza.pizza_CustPrice - pizza.pizza_BusPrice) AS Profit,
-		DATE_FORMAT(pizza_PizzaDate, "%m/%Y") AS OrderMonth
+		DATE_FORMAT(pizza_PizzaDate, "%c/%Y") AS OrderMonth
 	FROM 
 		pizza
 	GROUP BY
@@ -36,15 +31,15 @@ CREATE VIEW ProfitByOrderType AS
 	FROM 
 			(SELECT 
 				ordertable_OrderType AS customerType,
-				DATE_FORMAT(ordertable.ordertable_OrderDateTime, "%m/%Y") AS OrderMonth,
+				DATE_FORMAT(ordertable.ordertable_OrderDateTime, "%c/%Y") AS OrderMonth,
 				SUM(ordertable_CustPrice) AS TotalOrderPrice, 
 				SUM(ordertable_BusPrice) AS TotalOrderCost, 
-				(ordertable_CustPrice - ordertable_BusPrice) AS Profit, 
+				((SUM(ordertable_CustPrice)) - (SUM(ordertable_BusPrice))) AS Profit, 
                 1 as o
 			FROM
 				ordertable
 			GROUP BY
-				ordertable_OrderType, DATE_FORMAT(ordertable.ordertable_OrderDateTime, "%m/%Y")
+				ordertable_OrderType, DATE_FORMAT(ordertable.ordertable_OrderDateTime, "%c/%Y")
 			UNION SELECT 
 				NULL, 
                 'Grand Total', 
