@@ -100,7 +100,40 @@ public final class DBNinja {
 		 * 
 		 */
 
-		return -1;
+		 int pizzaId = -1;
+
+		String pizzaInsertQuery = "INSERT INTO Pizza (PizzaID, Size, CrustType, PizzaState, PizzaDate, CustPrice, BusPrice, OrderID) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+		 
+		 
+		 try (PreparedStatement pizzaStmt = conn.prepareStatement(pizzaInsertQuery, Statement.RETURN_GENERATED_KEYS)) {
+			 pizzaStmt.setInt(1, p.getPizzaID());
+			 pizzaStmt.setString(2, p.getSize());
+			 pizzaStmt.setString(3, p.getCrustType());
+			 pizzaStmt.setString(4, p.getPizzaState());
+			 pizzaStmt.setTimeStamp(5, p.getPizzaDate());
+			 pizzaStmt.setDouble(6, p.getCustPrice());
+			 pizzaStmt.setDouble(7, p.getBusPrice());
+			 pizzaStmt.setInt(8, orderID);
+
+			 pizzaStmt.executeUpdate()
+			 ResultSet rs = pizzaStmt.getGeneratedKeys();
+			 if (rs.next()) {
+				 pizzaId = rs.getInt(1);
+	 
+				 // Add toppings
+				 for (Topping topping : p.getToppings()) {
+					 addToppingToPizza(pizzaId, topping);
+				 }
+	 
+				 // Add discounts
+				 for (Discount discount : p.getDiscounts()) {
+					 addPizzaDiscount(pizzaId, discount);
+				 }
+			 }
+		 }
+		 return pizzaId;
 	}
 	
 	public static int addCustomer(Customer c) throws SQLException, IOException
