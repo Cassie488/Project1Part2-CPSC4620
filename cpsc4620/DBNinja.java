@@ -112,7 +112,7 @@ public final class DBNinja {
 			 pizzaStmt.setString(2, p.getSize());
 			 pizzaStmt.setString(3, p.getCrustType());
 			 pizzaStmt.setString(4, p.getPizzaState());
-			 pizzaStmt.setTimeStamp(5, p.getPizzaDate());
+			 pizzaStmt.setTimeStamp(5, new java.sql.Timestamp(d.getTime()));
 			 pizzaStmt.setDouble(6, p.getCustPrice());
 			 pizzaStmt.setDouble(7, p.getBusPrice());
 			 pizzaStmt.setInt(8, orderID);
@@ -124,12 +124,30 @@ public final class DBNinja {
 	 
 				 // Add toppings
 				 for (Topping topping : p.getToppings()) {
-					 addToppingToPizza(pizzaId, topping);
+					String sql = "INSERT INTO pizza_topping (PizzaID, ToppingID) VALUES (?, ?)";
+    
+					try (PreparedStatement stmt2 = conn.prepareStatement(sql)) {
+						stmt2.setInt(1, pizzaId);             // PizzaID of the newly added pizza
+						stmt2.setInt(2, topping.getToppingID());  // ToppingID of the topping
+						stmt2.executeUpdate();                 // Execute the insert
+					} catch (SQLException e) {
+						e.printStackTrace();
+						throw e;  // Propagate the exception further if necessary
+					}
 				 }
 	 
 				 // Add discounts
 				 for (Discount discount : p.getDiscounts()) {
-					 addPizzaDiscount(pizzaId, discount);
+					String sql = "INSERT INTO pizza_discount (PizzaID, DiscountID) VALUES (?, ?)";
+    
+					try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+						stmt.setInt(1, pizzaId);                // PizzaID of the newly added pizza
+						stmt.setInt(2, discount.getDiscountID());  // DiscountID of the discount
+						stmt.executeUpdate();                     // Execute the insert
+					} catch (SQLException e) {
+						e.printStackTrace();
+						throw e;  // Propagate the exception further if necessary
+					}
 				 }
 			 }
 		 }
