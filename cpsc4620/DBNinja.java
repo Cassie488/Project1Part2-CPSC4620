@@ -330,11 +330,11 @@ public final class DBNinja {
 		List<Order> orders = new ArrayList<>();
 
 		if(status == 1){
-			string queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = false"
+			string queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = false";
 		} else if (status == 2){
-			string queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = true"
+			string queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = true";
 		} else if (status == 3){
-			string queryOrder = "SELECT * FROM ordertable"
+			string queryOrder = "SELECT * FROM ordertable";
 		}
 
 		stmt = conn.prepareStatement(queryOrder);
@@ -350,13 +350,41 @@ public final class DBNinja {
 			int isComplete = rs.getBoolean("ordertable_isComplete");
 			if(OrderType.equals("Delivery")){
 				order = new DeliveryOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
+				
 				//need to get delivery specific attributes populated
+
+				string queryOrderDelivery = "SELECT pickup_IsPickedUp FROM pickup WHERE ordertable_OrderID = ?";
+				prepareStatement stmt = conn.prepareStatement(queryOrderDelivery)
+				stmt.setInt(1, OrderID);
+				ResultSet rs = stmt.executeQuery();
+				if(rs.next()){
+					order.setIsPickedUp(rs.getBoolean("pickup_IsPickedUP"));
+				}
+				
 			} else if(OrderType.equals("DineIn")){
 				order = new DineinOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
+
+				string queryOrderDineIn = "SELECT dinein_TableNum FROM dinein WHERE ordertable_OrderID = ?";
+				prepareStatement stmt = conn.prepareStatement(queryOrderDineIn)
+				stmt.setInt(1, OrderID);
+				ResultSet rs = stmt.executeQuery();
+				if(rs.next()){
+					order.setTableNum(rs.getInt("dinein_TableNum"));
+				}
 				//need to get dineIn specific attributes populated
 			} else if(OrderType.equals("PickUp")){
 				order = new PickupOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
 				//need to get pickup specific attributes populated
+
+				string queryOrderPickup = "SELECT pickup_IsPickedUp FROM pickup WHERE ordertable_OrderID = ?";
+				prepareStatement stmt = conn.prepareStatement(queryOrderPickup)
+				stmt.setInt(1, OrderID);
+				ResultSet rs = stmt.executeQuery();
+				if(rs.next()){
+					order.setIsPickedUp(rs.getBoolean("pickup_IsPickedUP"));
+				}
+
+
 			}
 
 			//populate the discount list
