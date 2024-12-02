@@ -84,7 +84,75 @@ public final class DBNinja {
 		 * so the cusomter id coming from the Order object will be -1.
 		 * 
 		 */
+		Connection conn = null;
+		PreparedStatement stmt = null;
+
+		try {
+			conn = DBNinja.getConnection(); // Assuming a DB connection helper method
+			conn.setAutoCommit(false); // Begin transaction
+
+			// Insert into Order table
+			String orderQuery = "INSERT INTO `Order` (ordertable_OrderID, customer_CustID, ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_IsComplete) VALUES (?, ?, ?, ?, ?, ?)";
+			stmt = conn.prepareStatement(orderQuery, Statement.RETURN_GENERATED_KEYS);
+			stmt.setInt(1, o.getOrderID());
+			stmt.setInt(2, (o.getCustID() == -1 ? null : o.getCustID())); // Handle no customer for Dine In
+			stmt.setString(3, o.getOrderType());
+			stmt.setTimeStamp(4, o.getDate());
+			stmt.setDouble(5, o.getCustPrice());
+			stmt.setDouble(6, o.getBusPrice());
+			stmt.setBoolean(7, o.getIsComplete());
+			stmt.executeUpdate();
+
+			ResultSet rs = stmt.getGeneratedKeys();
+			if (rs.next()) {
+				tempID = rs.getInt(1);
+			}
+
+			for (Pizza pizza : o.getPizzaList()) {
+				addPizza(pizza.getPizzaDate(), o.getOrderID(), pizza);
+			}
+
+			for (Discount discount : o.getDiscountList()) {
+				String discountQuery = "INSERT INTO Order_Discount (OrderID, DiscountID) VALUES (?, ?)";
+				stmt = conn.prepareStatement(discountQuery);
+				stmt.setInt(1, o.getOrderID());
+				stmt.setInt(2, discount.getDiscountID());
+				stmt.executeUpdate();
+			}
+
+			if ("Delivery"=(o.getOrderType())) {
+				String deliveryQuery = "INSERT INTO Delivery (OrderID, HouseNum, Street, City, State, Zip, IsDelivered) VALUES (?, ?, ?, ?, ?, ?, ?)";
+				DeliveryOrder deliveryOrder = (DeliveryOrder) o;
+				stmt = conn.prepareStatement(deliveryQuery);
+				stmt.setInt(1, o.getOrderID());
+				stmt.setString(2, deliveryOrder.getHouseNum());
+				stmt.setString(3, deliveryOrder.getStreet());
+				stmt.setString(4, deliveryOrder.getCity());
+				stmt.setString(5, deliveryOrder.getState());
+				stmt.setString(6, deliveryOrder.getZip());
+				stmt.setBoolean(7, deliveryOrder.getIsDelivered());
+				stmt.executeUpdate();
+			} else if ("DineIn"=(o.getOrderType())) {
+				String dineInQuery = "INSERT INTO DineIn (OrderID, TableNumber) VALUES (?, ?)";
+				DineinOrder dineinOrder = (DineinOrder) o;
+				stmt = conn.prepareStatement(dineInQuery);
+				stmt.setInt(1, o.getOrderID());
+				stmt.setInt(2, dineinOrder.getTableNum());
+				stmt.executeUpdate();
+			} else if ("Pickup"=(o.getOrderType())) {
+				String pickupQuery = "INSERT INTO Pickup (OrderID, IsPickedUp) VALUES (?, ?)";
+				PickupOrder pickupOrder = (PickupOrder) o;
+				stmt = conn.prepareStatement(pickupQuery);
+				stmt.setInt(1, o.getOrderID());
+				stmt.setBoolean(2, pickupOrder.getIsPickedUp()); 
+				stmt.executeUpdate();
+			}
+
+			conn.commit();
+			rs.close();
+			stmt.close();
 	}
+}	
 	
 	public static int addPizza(java.util.Date d, int orderID, Pizza p) throws SQLException, IOException
 	{
@@ -100,9 +168,9 @@ public final class DBNinja {
 		 * 
 		 */
 
-		 int pizzaId = -1;
+		int pizzaId = -1;
 
-		String pizzaInsertQuery = "INSERT INTO Pizza (PizzaID, Size, CrustType, PizzaState, PizzaDate, CustPrice, BusPrice, OrderID) "
+		String pizzaInsertQuery = "INSERT INTO Pizza (pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_PizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice, pizza_OrderID) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 		 
@@ -112,46 +180,42 @@ public final class DBNinja {
 			 pizzaStmt.setString(2, p.getSize());
 			 pizzaStmt.setString(3, p.getCrustType());
 			 pizzaStmt.setString(4, p.getPizzaState());
-			 pizzaStmt.setTimeStamp(5, new java.sql.Timestamp(d.getTime()));
+			 pizzaStmt.setTimeStamp(5, p.getPizzaDate());
 			 pizzaStmt.setDouble(6, p.getCustPrice());
 			 pizzaStmt.setDouble(7, p.getBusPrice());
 			 pizzaStmt.setInt(8, orderID);
 
 			 pizzaStmt.executeUpdate()
-			 ResultSet rs = pizzaStmt.getGeneratedKeys();
-			 if (rs.next()) {
-				 pizzaId = rs.getInt(1);
+			 try(ResultSet rs = pizzaStmt.getGeneratedKeys()){
+				if (rs.next()) {
+					PizzaID = rs.getInt(1);
+				}
+			 }
 	 
 				 // Add toppings
 				 for (Topping topping : p.getToppings()) {
-					String sql = "INSERT INTO pizza_topping (PizzaID, ToppingID) VALUES (?, ?)";
+					String sql = "INSERT INTO pizza_topping (PizzaID, ToppingID, pizza_topping_IsDouble) VALUES (?, ?, ?)";
     
 					try (PreparedStatement stmt2 = conn.prepareStatement(sql)) {
-						stmt2.setInt(1, pizzaId);             // PizzaID of the newly added pizza
-						stmt2.setInt(2, topping.getToppingID());  // ToppingID of the topping
-						stmt2.executeUpdate();                 // Execute the insert
-					} catch (SQLException e) {
-						e.printStackTrace();
-						throw e;  // Propagate the exception further if necessary
+						stmt2.setInt(1, PizzaID);             
+						stmt2.setInt(2, topping.getTopID());
+						toppingStmt.setInt(3, topping.getDoubled() ? 1 : 0); 
+						stmt2.executeUpdate();  
 					}
 				 }
 	 
-				 // Add discounts
 				 for (Discount discount : p.getDiscounts()) {
 					String sql = "INSERT INTO pizza_discount (PizzaID, DiscountID) VALUES (?, ?)";
     
 					try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-						stmt.setInt(1, pizzaId);                // PizzaID of the newly added pizza
-						stmt.setInt(2, discount.getDiscountID());  // DiscountID of the discount
-						stmt.executeUpdate();                     // Execute the insert
-					} catch (SQLException e) {
-						e.printStackTrace();
-						throw e;  // Propagate the exception further if necessary
+						stmt.setInt(1, PizzaID);
+						stmt.setInt(2, discount.getDiscountID());
+						stmt.executeUpdate();
 					}
 				 }
 			 }
 		 }
-		 return pizzaId;
+		 return PizzaID;
 	}
 	
 	public static int addCustomer(Customer c) throws SQLException, IOException
@@ -160,7 +224,29 @@ public final class DBNinja {
 		 * This method adds a new customer to the database.
 		 * 
 		 */
+		int customerId = -1;
 
+		// SQL query to insert a new customer into the Customer table
+		String customerInsertQuery = "INSERT INTO Customer (CustID, customer_FName, customer_LName, customer_PhoneNum) VALUES (?, ?, ?, ?)";
+
+		try (PreparedStatement stmt = conn.prepareStatement(customerInsertQuery, Statement.RETURN_GENERATED_KEYS)) {
+			// Set the customer's details in the query
+			stmt.setString(1, c.getCustID());
+			stmt.setString(2, c.getFName());
+			stmt.setString(3, c.getLName());
+			stmt.setString(4, c.getPhone());
+
+			// Execute the insert operation
+			stmt.executeUpdate();
+	
+			// Retrieve the generated customer ID
+			try (ResultSet rs = stmt.getGeneratedKeys()) {
+				if (rs.next()) {
+					customerId = rs.getInt(1); // Get the generated customer ID
+					c.setCustID(customerId);  // Update the Customer object with the ID
+				}
+			}
+		}
 		 return -1;
 	}
 
