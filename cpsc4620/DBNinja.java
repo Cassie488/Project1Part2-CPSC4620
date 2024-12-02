@@ -120,7 +120,8 @@ public final class DBNinja {
 				stmt.executeUpdate();
 			}
 
-			if ("Delivery"=(o.getOrderType())) {
+			//FIX THE COMPARISIONS CASSIE TY
+			if ("Delivery"==(o.getOrderType())) {
 				String deliveryQuery = "INSERT INTO Delivery (OrderID, HouseNum, Street, City, State, Zip, IsDelivered) VALUES (?, ?, ?, ?, ?, ?, ?)";
 				DeliveryOrder deliveryOrder = (DeliveryOrder) o;
 				stmt = conn.prepareStatement(deliveryQuery);
@@ -132,14 +133,14 @@ public final class DBNinja {
 				stmt.setString(6, deliveryOrder.getZip());
 				stmt.setBoolean(7, deliveryOrder.getIsDelivered());
 				stmt.executeUpdate();
-			} else if ("DineIn"=(o.getOrderType())) {
+			} else if ("DineIn"==(o.getOrderType())) {
 				String dineInQuery = "INSERT INTO DineIn (OrderID, TableNumber) VALUES (?, ?)";
 				DineinOrder dineinOrder = (DineinOrder) o;
 				stmt = conn.prepareStatement(dineInQuery);
 				stmt.setInt(1, o.getOrderID());
 				stmt.setInt(2, dineinOrder.getTableNum());
 				stmt.executeUpdate();
-			} else if ("Pickup"=(o.getOrderType())) {
+			} else if ("Pickup"==(o.getOrderType())) {
 				String pickupQuery = "INSERT INTO Pickup (OrderID, IsPickedUp) VALUES (?, ?)";
 				PickupOrder pickupOrder = (PickupOrder) o;
 				stmt = conn.prepareStatement(pickupQuery);
@@ -151,6 +152,8 @@ public final class DBNinja {
 			conn.commit();
 			rs.close();
 			stmt.close();
+	} catch (SQLException e){
+		conn.rollback();
 	}
 }	
 	
@@ -168,7 +171,7 @@ public final class DBNinja {
 		 * 
 		 */
 
-		int pizzaId = -1;
+		int PizzaId = -1;
 
 		String pizzaInsertQuery = "INSERT INTO Pizza (pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_PizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice, pizza_OrderID) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -185,7 +188,7 @@ public final class DBNinja {
 			 pizzaStmt.setDouble(7, p.getBusPrice());
 			 pizzaStmt.setInt(8, orderID);
 
-			 pizzaStmt.executeUpdate()
+			 pizzaStmt.executeUpdate();
 			 try(ResultSet rs = pizzaStmt.getGeneratedKeys()){
 				if (rs.next()) {
 					PizzaID = rs.getInt(1);
@@ -214,8 +217,8 @@ public final class DBNinja {
 					}
 				 }
 			 }
+			 return PizzaID;
 		 }
-		 return PizzaID;
 	}
 	
 	public static int addCustomer(Customer c) throws SQLException, IOException
@@ -262,6 +265,24 @@ public final class DBNinja {
 		 * FOR newState = PICKEDUP: mark the pickup status
 		 * 
 		 */
+		conn = DBNinja.getConnection();
+		try{
+			if(newState.equals(order_state.PREPARED)){
+				String updatePizza = "UPDATE pizza SET pizza_PizzaState=? WHERE ordertable_OrderID=?"; 
+				PreparedStatement PizzaStmt = conn.prepareStatement(updatePizza);
+				PizzaStmt.setString(1, "COMPLETE");
+				PizzaStmt.setString(2, OrderID);
+				PizzaStmt.executeUpdate();
+
+				String updateOrder = "UPDATE ordertable SET ordertable_isComplete=? WHERE ordertable_OrderID=?"; 
+				PreparedStatement orderStmt = conn.prepareStatement(updateOrder);
+				orderStmt.setString(1, 1);
+				orderStmt.setString(2, OrderID);
+				orderStmt.executeUpdate();
+			} else if (newState.equals(order_state.DELIVERED)){
+
+			} else if (newState.equals(order_state.PICKEDUP))
+		}
 
 	}
 
@@ -593,4 +614,3 @@ public final class DBNinja {
 	}
 
 
-}
