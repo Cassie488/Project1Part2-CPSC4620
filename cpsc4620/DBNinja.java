@@ -350,16 +350,19 @@ public final class DBNinja {
 			int isComplete = rs.getBoolean("ordertable_isComplete");
 			if(OrderType.equals("Delivery")){
 				order = new DeliveryOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
-				//need to get delivery table populated
+				//need to get delivery specific attributes populated
 			} else if(OrderType.equals("DineIn")){
 				order = new DineinOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
-				//need to get dineIn table populated
+				//need to get dineIn specific attributes populated
 			} else if(OrderType.equals("PickUp")){
 				order = new PickupOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
-				//need to get pickup table populated
+				//need to get pickup specific attributes populated
 			}
-			addOrder(order);
+
+			//populate the discount list
+			//populate the pizza list here
 			orders.add(order)
+		}
 			
 		return null;
 	}
