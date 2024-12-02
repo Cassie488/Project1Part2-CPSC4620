@@ -4,14 +4,18 @@
 CREATE VIEW ToppingPopularity AS 
 	SELECT  
 		topping.topping_TopName AS Topping, 
-		(count(case when pizza_topping.pizza_topping_IsDouble = 0 then 1 end) +
-		(count(case when pizza_topping.pizza_topping_IsDouble != 0 then 2 end)*2)) AS ToppingCount
+		SUM(CASE
+				WHEN pizza_topping.pizza_topping_IsDouble = 1 THEN 2
+				WHEN pizza_topping.pizza_topping_IsDouble = 0 THEN 1
+				ELSE 0
+			END) AS ToppingCount
 	FROM 
 		topping 
 		LEFT JOIN pizza_topping ON topping.topping_TopID = pizza_topping.topping_TopID
     GROUP 
-		BY topping.topping_TopID
-	ORDER BY ToppingCount DESC, Topping ASC;
+		BY topping.topping_TopName
+	ORDER BY 
+		ToppingCount DESC, Topping ASC;
         
 CREATE VIEW ProfitByPizza AS 
 	SELECT 

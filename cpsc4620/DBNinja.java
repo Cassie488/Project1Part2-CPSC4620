@@ -327,7 +327,7 @@ public final class DBNinja {
 	 *
 	 */
 		conn = DBNinja.getConnection();
-
+		List<Order> orders = new ArrayList<>();
 
 		if(status == 1){
 			string queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = false"
@@ -336,6 +336,31 @@ public final class DBNinja {
 		} else if (status == 3){
 			string queryOrder = "SELECT * FROM ordertable"
 		}
+
+		stmt = conn.prepareStatement(queryOrder);
+		rs = stmt.executeQuery();
+
+		while(rs.next()){
+			int OrderID = rs.getInt("ordertable_OrderID");
+			int CustID = rs.getInt("ordertable_CustID");
+			int OrderType = rs.getString("ordertable_OrderType");
+			int OrderDateTime = rs.getTimeStamp("ordertable_OrderDateTime");
+			int CustPrice = rs.getDouble("ordertable_CustPrice");
+			int BusPrice = rs.getDouble("ordertable_BusPrice");
+			int isComplete = rs.getBoolean("ordertable_isComplete");
+			if(OrderType.equals("Delivery")){
+				order = new DeliveryOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
+				//need to get delivery table populated
+			} else if(OrderType.equals("DineIn")){
+				order = new DineinOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
+				//need to get dineIn table populated
+			} else if(OrderType.equals("PickUp")){
+				order = new PickupOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
+				//need to get pickup table populated
+			}
+			addOrder(order);
+			orders.add(order)
+			
 		return null;
 	}
 	
