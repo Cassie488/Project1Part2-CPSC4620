@@ -126,11 +126,11 @@ public final class DBNinja {
 				DeliveryOrder deliveryOrder = (DeliveryOrder) o;
 				stmt = conn.prepareStatement(deliveryQuery);
 				stmt.setInt(1, o.getOrderID());
-				stmt.setString(2, deliveryOrder.getHouseNum());
+				stmt.setInt(2, deliveryOrder.getHouseNum());
 				stmt.setString(3, deliveryOrder.getStreet());
 				stmt.setString(4, deliveryOrder.getCity());
 				stmt.setString(5, deliveryOrder.getState());
-				stmt.setString(6, deliveryOrder.getZip());
+				stmt.setInt(6, deliveryOrder.getZip());
 				stmt.setBoolean(7, deliveryOrder.getIsDelivered());
 				stmt.executeUpdate();
 			} else if ("DineIn"==(o.getOrderType())) {
@@ -234,7 +234,7 @@ public final class DBNinja {
 
 		try (PreparedStatement stmt = conn.prepareStatement(customerInsertQuery, Statement.RETURN_GENERATED_KEYS)) {
 			// Set the customer's details in the query
-			stmt.setString(1, c.getCustID());
+			stmt.setInt(1, c.getCustID());
 			stmt.setString(2, c.getFName());
 			stmt.setString(3, c.getLName());
 			stmt.setString(4, c.getPhone());
@@ -271,17 +271,39 @@ public final class DBNinja {
 				String updatePizza = "UPDATE pizza SET pizza_PizzaState=? WHERE ordertable_OrderID=?"; 
 				PreparedStatement PizzaStmt = conn.prepareStatement(updatePizza);
 				PizzaStmt.setString(1, "COMPLETE");
-				PizzaStmt.setString(2, OrderID);
+				PizzaStmt.setInt(2, OrderID);
 				PizzaStmt.executeUpdate();
 
 				String updateOrder = "UPDATE ordertable SET ordertable_isComplete=? WHERE ordertable_OrderID=?"; 
 				PreparedStatement orderStmt = conn.prepareStatement(updateOrder);
-				orderStmt.setString(1, 1);
-				orderStmt.setString(2, OrderID);
+				orderStmt.setBoolean(1, true);
+				orderStmt.setInt(2, OrderID);
 				orderStmt.executeUpdate();
 			} else if (newState.equals(order_state.DELIVERED)){
-
-			} else if (newState.equals(order_state.PICKEDUP))
+				String updateDelivery = "UPDATE delivery SET delivery_isDelivered=? WHERE ordertable_OrderID=?"; 
+				PreparedStatement DeliveryStmt = conn.prepareStatement(updateDelivery);
+				DeliveryStmt.setBoolean(1, true);
+				DeliveryStmt.setInt(2, OrderID);
+				DeliveryStmt.executeUpdate();
+			} else if (newState.equals(order_state.PICKEDUP)) {
+				String updatePickup = "UPDATE pickup SET pickup_IsPickedUp=? WHERE ordertable_OrderID=?"; 
+				PreparedStatement pickupStmt = conn.prepareStatement(updatePickup);
+				pickupStmt.setBoolean(1, true);
+				pickupStmt.setInt(2, OrderID);
+				pickupStmt.executeUpdate();
+			}
+			conn.commit();
+			if(newState.equals(order_state.PREPARED)){
+				PizzaStmt.close();
+				orderStmt.close();
+			} else if (newState.equals(order_state.DELIVERED)){
+				DeliveryStmt.close();
+			} else if (newState.equals(order_state.PICKEDUP)) {
+				pickupStmt.close();
+			}
+			conn.close();
+		} catch (SQLException e){
+			conn.rollback();
 		}
 
 	}
@@ -304,6 +326,16 @@ public final class DBNinja {
 	 * Don't forget to order the data coming from the database appropriately.
 	 *
 	 */
+		conn = DBNinja.getConnection();
+
+
+		if(status == 1){
+			string queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = false"
+		} else if (status == 2){
+			string queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = true"
+		} else if (status == 3){
+			string queryOrder = "SELECT * FROM ordertable"
+		}
 		return null;
 	}
 	
