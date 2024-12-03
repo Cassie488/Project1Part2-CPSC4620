@@ -176,13 +176,17 @@ public final class DBNinja {
 		connect_to_db();
 
 		int PizzaID = -1;
+		PreparedStatement pizzaStmt = null;
+		ResultSet rs = null;
+		PreparedStatement stmtTopping = null;
+		PreparedStatement stmtDiscount = null;
 
 		String pizzaInsertQuery = "INSERT INTO Pizza (pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_PizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice, pizza_OrderID) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 		 
 		 
-		 try (PreparedStatement pizzaStmt = conn.prepareStatement(pizzaInsertQuery, Statement.RETURN_GENERATED_KEYS)) {
+		 try (pizzaStmt = conn.prepareStatement(pizzaInsertQuery, Statement.RETURN_GENERATED_KEYS)) {
 			 pizzaStmt.setInt(1, p.getPizzaID());
 			 pizzaStmt.setString(2, p.getSize());
 			 pizzaStmt.setString(3, p.getCrustType());
@@ -193,7 +197,7 @@ public final class DBNinja {
 			 pizzaStmt.setInt(8, orderID);
 
 			 pizzaStmt.executeUpdate();
-			 try(ResultSet rs = pizzaStmt.getGeneratedKeys()){
+			 try(rs = pizzaStmt.getGeneratedKeys()){
 				if (rs.next()) {
 					PizzaID = rs.getInt(1);
 				}
@@ -203,24 +207,28 @@ public final class DBNinja {
 				 for (Topping topping : p.getToppings()) {
 					String sql = "INSERT INTO pizza_topping (PizzaID, ToppingID, pizza_topping_IsDouble) VALUES (?, ?, ?)";
     
-					try (PreparedStatement stmt2 = conn.prepareStatement(sql)) {
-						stmt2.setInt(1, PizzaID);             
-						stmt2.setInt(2, topping.getTopID());
-						stmt2.setInt(3, topping.getDoubled() ? 1 : 0); 
-						stmt2.executeUpdate();  
+					try (stmtTopping = conn.prepareStatement(sql)) {
+						stmtTopping.setInt(1, PizzaID);             
+						stmtTopping.setInt(2, topping.getTopID());
+						stmtTopping.setInt(3, topping.getDoubled() ? 1 : 0); 
+						stmtTopping.executeUpdate();  
 					}
 				 }
 	 
 				 for (Discount discount : p.getDiscounts()) {
 					String sql = "INSERT INTO pizza_discount (PizzaID, DiscountID) VALUES (?, ?)";
     
-					try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-						stmt.setInt(1, PizzaID);
-						stmt.setInt(2, discount.getDiscountID());
-						stmt.executeUpdate();
+					try (stmtDiscount = conn.prepareStatement(sql)) {
+						stmtDiscount.setInt(1, PizzaID);
+						stmtDiscount.setInt(2, discount.getDiscountID());
+						stmtDiscount.executeUpdate();
 					}
 				 }
 			 }
+			 pizzaStmt.close();
+			 rs.close();
+			 stmtTopping.close();
+			 stmtDiscount.close();
 			 return PizzaID;
 		 }
 	}
@@ -232,11 +240,13 @@ public final class DBNinja {
 		 * 
 		 */
 		int customerId = -1;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
 
 		// SQL query to insert a new customer into the Customer table
 		String customerInsertQuery = "INSERT INTO Customer (CustID, customer_FName, customer_LName, customer_PhoneNum) VALUES (?, ?, ?, ?)";
 
-		try (PreparedStatement stmt = conn.prepareStatement(customerInsertQuery, Statement.RETURN_GENERATED_KEYS)) {
+		try (stmt = conn.prepareStatement(customerInsertQuery, Statement.RETURN_GENERATED_KEYS)) {
 			// Set the customer's details in the query
 			stmt.setInt(1, c.getCustID());
 			stmt.setString(2, c.getFName());
@@ -247,13 +257,17 @@ public final class DBNinja {
 			stmt.executeUpdate();
 	
 			// Retrieve the generated customer ID
-			try (ResultSet rs = stmt.getGeneratedKeys()) {
+			try (rs = stmt.getGeneratedKeys()) {
 				if (rs.next()) {
 					customerId = rs.getInt(1); // Get the generated customer ID
 					c.setCustID(customerId);  // Update the Customer object with the ID
 				}
 			}
 		}
+		rs.close();
+		conn.close();
+		stmt.close();
+
 		 return -1;
 	}
 
@@ -270,28 +284,32 @@ public final class DBNinja {
 		 * 
 		 */
 		connect_to_db();
+		PreparedStatement PizzaStmt = null;
+		PreparedStatement orderStmt = null;
+		PreparedStatement DeliveryStmt = null;
+		PreparedStatement pickupStmt = null;
 		try{
 			if(newState.equals(order_state.PREPARED)){
 				String updatePizza = "UPDATE pizza SET pizza_PizzaState=? WHERE ordertable_OrderID=?"; 
-				PreparedStatement PizzaStmt = conn.prepareStatement(updatePizza);
+				PizzaStmt = conn.prepareStatement(updatePizza);
 				PizzaStmt.setString(1, "COMPLETE");
 				PizzaStmt.setInt(2, OrderID);
 				PizzaStmt.executeUpdate();
 
 				String updateOrder = "UPDATE ordertable SET ordertable_isComplete=? WHERE ordertable_OrderID=?"; 
-				PreparedStatement orderStmt = conn.prepareStatement(updateOrder);
+				orderStmt = conn.prepareStatement(updateOrder);
 				orderStmt.setBoolean(1, true);
 				orderStmt.setInt(2, OrderID);
 				orderStmt.executeUpdate();
 			} else if (newState.equals(order_state.DELIVERED)){
 				String updateDelivery = "UPDATE delivery SET delivery_isDelivered=? WHERE ordertable_OrderID=?"; 
-				PreparedStatement DeliveryStmt = conn.prepareStatement(updateDelivery);
+				DeliveryStmt = conn.prepareStatement(updateDelivery);
 				DeliveryStmt.setBoolean(1, true);
 				DeliveryStmt.setInt(2, OrderID);
 				DeliveryStmt.executeUpdate();
 			} else if (newState.equals(order_state.PICKEDUP)) {
 				String updatePickup = "UPDATE pickup SET pickup_IsPickedUp=? WHERE ordertable_OrderID=?"; 
-				PreparedStatement pickupStmt = conn.prepareStatement(updatePickup);
+				pickupStmt = conn.prepareStatement(updatePickup);
 				pickupStmt.setBoolean(1, true);
 				pickupStmt.setInt(2, OrderID);
 				pickupStmt.executeUpdate();
@@ -332,6 +350,12 @@ public final class DBNinja {
 	 */
 		connect_to_db();
 		List<Order> orders = new ArrayList<>();
+		PreparedStatement stmtDelivery = null;
+		PreparedStatement stmtDineIn = null;
+		PreparedStatement stmtPickUp = null;
+		PreparedStatement stmt = null;
+		PreparedStatement stmtPizza = null;
+		PreparedStatement stmtTopping = null;
 
 		if(status == 1){
 			String queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = false";
@@ -361,9 +385,9 @@ public final class DBNinja {
 				FROM delivery 
 				WHERE ordertable_OrderID = ?";
 
-				prepareStatement stmt = conn.prepareStatement(queryOrderDelivery)
-				stmt.setInt(1, OrderID);
-				ResultSet rs = stmt.executeQuery();
+				stmtDelivery = conn.prepareStatement(queryOrderDelivery)
+				stmtDelivery.setInt(1, OrderID);
+				ResultSet rs = stmtDelivery.executeQuery();
 
 				if(rs.next()){
 					int houseNum = rs.getInt("delivery_HouseNum");
@@ -385,9 +409,9 @@ public final class DBNinja {
 
 				String queryOrderDineIn = "SELECT dinein_TableNum FROM dinein WHERE ordertable_OrderID = ?";
 
-				prepareStatement stmt = conn.prepareStatement(queryOrderDineIn)
-				stmt.setInt(1, OrderID);
-				ResultSet rs = stmt.executeQuery();
+				stmtDineIn = conn.prepareStatement(queryOrderDineIn)
+				stmtDineIn.setInt(1, OrderID);
+				ResultSet rs = stmtDineIn.executeQuery();
 
 				if(rs.next()){
 					order.setTableNum(rs.getInt("dinein_TableNum"));
@@ -398,9 +422,9 @@ public final class DBNinja {
 
 				String queryOrderPickup = "SELECT pickup_IsPickedUp FROM pickup WHERE ordertable_OrderID = ?";
 
-				prepareStatement stmt = conn.prepareStatement(queryOrderPickup)
-				stmt.setInt(1, OrderID);
-				ResultSet rs = stmt.executeQuery();
+				stmtPickUp = conn.prepareStatement(queryOrderPickup)
+				stmtPickUp.setInt(1, OrderID);
+				ResultSet rs = stmtPickUp.executeQuery();
 
 				if(rs.next()){
 					order.setIsPickedUp(rs.getBoolean("pickup_IsPickedUP"));
@@ -416,7 +440,7 @@ public final class DBNinja {
 			pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_pizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice
 			FROM pizza WHERE ordertable_OrderID = ?";
 
-			prepareStatement stmtPizza = conn.prepareStatement(PizzaQuery);
+			stmtPizza = conn.prepareStatement(PizzaQuery);
 			stmtPizza.setInt(1, OrderID);
 			ResultSet rs = stmtPizza = stmtPizza.executeQuery();
 
@@ -438,6 +462,8 @@ public final class DBNinja {
 				//get discounts
 				//get toppings
 
+				ArrayList<Topping> toppings = new ArrayList<>();
+
 				String toppingQuery = "SELECT 
 				pizza_topping.topping_TopID, pizza_topping.pizza_topping_IsDouble, topping.topping_TopName, topping.topping_SmallAMT, topping.topping_MedAMT, topping.topping_LgAMT, topping.topping_XLAMT,
 				topping.topping_CusPrice, topping.topping_BusPrice, topping.topping_MinINVT, topping.topping_CurINVT
@@ -445,7 +471,10 @@ public final class DBNinja {
 				JOIN topping ON pizza_topping.topping_TopID = topping.topping_TopID
 				WHERE pizza_PizzaID = ?";
 
-				prepareStatement stmtPizza = conn.prepareStatement(PizzaQuery);
+				stmtTopping = conn.prepareStatement(toppingQuery);
+
+				Topping(int topID, String topName, double smallAMT, double medAMT, double lgAMT, double xLAMT,
+				double custPrice, double busPrice, int minINVT, int curINVT)
 				setDoubled
 				pizzas.add(pizza);
 
