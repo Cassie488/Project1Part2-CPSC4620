@@ -447,7 +447,7 @@ public final class DBNinja {
 			//populate the discount list
 
 
-			ArrayList<DiscountsPizza> discountList = new ArrayList<>();
+			ArrayList<Discount> discountList = new ArrayList<>();
 			discountList = getDiscounts(order);
 			pizza.setDiscounts(discountList);
 			//populate the pizza list here
@@ -477,7 +477,7 @@ public final class DBNinja {
 
 
 				//get discounts
-				ArrayList<DiscountsPizza> discountList = new ArrayList<>();
+				ArrayList<Discount> discountList = new ArrayList<>();
 				discountList = getDiscounts(pizza);
 				pizza.setDiscounts(discountList);
 
@@ -653,6 +653,7 @@ public final class DBNinja {
 		 * This method builds an ArrayList of the toppings ON a pizza.
 		 * The list can then be added to the Pizza object elsewhere in the
 		 */
+		connect_to_db();
 				PreparedStatement stmtTopping = null;
 				ResultSet rsTopping = null;
 				ArrayList<Topping> toppingsList = new ArrayList<>();
@@ -690,6 +691,7 @@ public final class DBNinja {
 				}
 				stmtTopping.close();
 				rsTopping.close();
+				conn.close();
 				return toppingsList;	
 	}
 
@@ -717,8 +719,8 @@ public final class DBNinja {
 		 * Build an array list of all the Discounts associted with the Order.
 		 * 
 		 */
-
-		 esultSet rsDiscount = null;
+		connect_to_db();
+		 ResultSet rsDiscount = null;
 		 PreparedStatement stmtDiscount = null;
  
 		 ArrayList<DiscountsPizza> discountList = new ArrayList<>();
@@ -747,6 +749,7 @@ public final class DBNinja {
 		 }
 		 stmtDiscount.close();
 		 rsDiscount.close();
+		 conn.close();
 		 return discountList;
 	}
 
@@ -756,6 +759,7 @@ public final class DBNinja {
 		 * Build an array list of all the Discounts associted with the Pizza.
 		 * 
 		 */
+		connect_to_db();
 		ResultSet rsDiscount = null;
 		PreparedStatement stmtDiscount = null;
 
@@ -785,6 +789,7 @@ public final class DBNinja {
 		}
 		stmtDiscount.close();
 		rsDiscount.close();
+		conn.close();
 		return discountList;
 	}
 
