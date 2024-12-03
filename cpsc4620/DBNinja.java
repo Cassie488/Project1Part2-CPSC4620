@@ -170,6 +170,7 @@ public final class DBNinja {
 		 * This method returns the id of the pizza just added.
 		 * 
 		 */
+		Connection conn = DBNinja.getConnection();
 
 		int PizzaId = -1;
 
@@ -265,7 +266,7 @@ public final class DBNinja {
 		 * FOR newState = PICKEDUP: mark the pickup status
 		 * 
 		 */
-		conn = DBNinja.getConnection();
+		Connection conn = DBNinja.getConnection();
 		try{
 			if(newState.equals(order_state.PREPARED)){
 				String updatePizza = "UPDATE pizza SET pizza_PizzaState=? WHERE ordertable_OrderID=?"; 
@@ -326,7 +327,7 @@ public final class DBNinja {
 	 * Don't forget to order the data coming from the database appropriately.
 	 *
 	 */
-		conn = DBNinja.getConnection();
+		Connection conn = DBNinja.getConnection();
 		List<Order> orders = new ArrayList<>();
 
 		if(status == 1){
@@ -424,7 +425,7 @@ public final class DBNinja {
 				String pizzaDate = rs.getString("pizza_PizzaDate");
 				Double pizzaCustPrice = rs.getDouble("pizza_CustPrice");
 				Double pizzaBusPrice = rs.getDouble("pizza_BusPrice");
-				
+
 				Pizza pizza = new Pizza(pizzaID, pizzaSize, pizzaCrustType, OrderID, pizzaState, pizzaDate,
 				pizzaCustPrice, pizzaBusPrice);
 
