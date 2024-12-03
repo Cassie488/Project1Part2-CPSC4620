@@ -409,6 +409,9 @@ public final class DBNinja {
 
 					order.setAddress(address);
 				}
+				rsDelivery.close();
+				stmtDelivery.close();
+					
 				
 			} else if(OrderType.equals("DineIn")){
 				order = new DineinOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
@@ -422,6 +425,8 @@ public final class DBNinja {
 				if(rsDineIn.next()){
 					order.setTableNum(rsDineIn.getInt("dinein_TableNum"));
 				}
+				rsDineIn.close();
+				stmtDineIn.close();
 
 			} else if(OrderType.equals("PickUp")){
 				order = new PickupOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
@@ -435,10 +440,16 @@ public final class DBNinja {
 				if(rsPickUp.next()){
 					order.setIsPickedUp(rsPickUp.getBoolean("pickup_IsPickedUP"));
 				}
-
+				rsPickUp.close();
+				stmtPickUp.close();
 			}
 
 			//populate the discount list
+
+
+			ArrayList<DiscountsPizza> discountList = new ArrayList<>();
+			discountList = getDiscounts(order);
+			pizza.setDiscounts(discountList);
 			//populate the pizza list here
 
 			
@@ -467,6 +478,8 @@ public final class DBNinja {
 
 				//get discounts
 				ArrayList<DiscountsPizza> discountList = new ArrayList<>();
+				discountList = getDiscounts(pizza);
+				pizza.setDiscounts(discountList);
 
 
 				//get toppings
@@ -480,7 +493,10 @@ public final class DBNinja {
 			}
 			ordersList.add(order)
 		}
-			
+		stmt.close();
+		stmtPizza.close();
+		rsPizza.close();
+		rsOrder.close();
 		return null;
 	}
 	
@@ -702,7 +718,36 @@ public final class DBNinja {
 		 * 
 		 */
 
-		return null;
+		 esultSet rsDiscount = null;
+		 PreparedStatement stmtDiscount = null;
+ 
+		 ArrayList<DiscountsPizza> discountList = new ArrayList<>();
+ 
+		 String discountQuery = "SELECT 
+		 order_discount.discount_DiscountID, discount.discount_DiscountName, 
+		 discount.discount_Amount, discount.discount_IsPercent
+		 FROM order_discount  
+		 JOIN discount ON order_discount.discount_DiscountID = discount.discount_DiscountID
+		 WHERE order_discount.ordertable_OrderID = ?";
+ 
+		 stmtDiscount = conn.prepareStatement(discountQuery);
+		 stmtDiscount.setInt(1, o.getOrderID());
+		 rsDiscount = stmtDiscount = stmtDiscount.executeQuery();
+ 
+		 while(rsDiscount.next){
+			 int discountID = rsDiscount.getInt("discount_DiscountID");
+			 Boolean discountName = rsDiscount.getString("discount_DiscountName");
+			 String amount = rsDiscount.getDouble("discount_Amount");
+			 double isPercent = rsDiscount.getBoolean("discount_IsPercent");
+ 
+			 Discount discount = new Discount(discountID, discountName, amount, isPercent)
+ 
+			 discountList.add(discount);
+ 
+		 }
+		 stmtDiscount.close();
+		 rsDiscount.close();
+		 return discountList;
 	}
 
 	public static ArrayList<Discount> getDiscounts(Pizza p) throws SQLException, IOException 
@@ -717,19 +762,30 @@ public final class DBNinja {
 		ArrayList<DiscountsPizza> discountList = new ArrayList<>();
 
 		String discountQuery = "SELECT 
-		pizza_topping.topping_TopID, pizza_topping.pizza_topping_IsDouble, topping.topping_TopName, topping.topping_SmallAMT, topping.topping_MedAMT, topping.topping_LgAMT, topping.topping_XLAMT,
-		topping.topping_CusPrice, topping.topping_BusPrice, topping.topping_MinINVT, topping.topping_CurINVT
+		pizza_discount.discount_DiscountID, discount.discount_DiscountName, 
+		discount.discount_Amount, discount.discount_IsPercent
 		FROM pizza_discount  
 		JOIN discount ON pizza_discount.discount_DiscountID = discount.discount_DiscountID
-		WHERE discount_Discount_ID = ?";
+		WHERE pizza_discount.pizza_PizzaID = ?";
 
 		stmtDiscount = conn.prepareStatement(discountQuery);
-		stmtDiscount.setInt(1, pizzaID);
+		stmtDiscount.setInt(1, p.getPizzaID());
 		rsDiscount = stmtDiscount = stmtDiscount.executeQuery();
 
+		while(rsDiscount.next){
+			int discountID = rsDiscount.getInt("discount_DiscountID");
+			Boolean discountName = rsDiscount.getString("discount_DiscountName");
+			String amount = rsDiscount.getDouble("discount_Amount");
+			double isPercent = rsDiscount.getBoolean("discount_IsPercent");
 
-	
-		return null;
+			Discount discount = new Discount(discountID, discountName, amount, isPercent)
+
+			discountList.add(discount);
+
+		}
+		stmtDiscount.close();
+		rsDiscount.close();
+		return discountList;
 	}
 
 	public static double getBaseCustPrice(String size, String crust) throws SQLException, IOException 
