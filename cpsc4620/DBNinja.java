@@ -553,7 +553,19 @@ public final class DBNinja {
 		 * If it's not found....then return null
 		 *  
 		 */
-		 return null;
+		String customerQuery = "SELECT pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_pizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice FROM pizza WHERE ordertable_OrderID = ?";
+
+		stmtPizza = conn.prepareStatement(PizzaQuery);
+		stmtPizza.setInt(1, OrderID);
+		rsPizza = stmtPizza.executeQuery();
+
+		ArrayList<Pizza> pizzasList = new ArrayList<>();
+		while(rsPizza.next()){
+
+			int pizzaID = rsPizza.getInt("pizza_PizzaID");
+			String pizzaSize = rsPizza.getString
+		 	return null;
+		}
 	}
 
 	public static String getCustomerName(int CustID) throws SQLException, IOException 
