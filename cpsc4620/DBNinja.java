@@ -84,11 +84,10 @@ public final class DBNinja {
 		 * so the cusomter id coming from the Order object will be -1.
 		 * 
 		 */
-		Connection conn = null;
+		connect_to_db();
 		PreparedStatement stmt = null;
 
 		try {
-			conn = DBNinja.getConnection(); // Assuming a DB connection helper method
 			conn.setAutoCommit(false); // Begin transaction
 
 			// Insert into Order table
@@ -125,13 +124,17 @@ public final class DBNinja {
 				String deliveryQuery = "INSERT INTO Delivery (OrderID, HouseNum, Street, City, State, Zip, IsDelivered) VALUES (?, ?, ?, ?, ?, ?, ?)";
 				DeliveryOrder deliveryOrder = (DeliveryOrder) o;
 				stmt = conn.prepareStatement(deliveryQuery);
-				stmt.setInt(1, o.getOrderID());
-				stmt.setInt(2, deliveryOrder.getHouseNum());
-				stmt.setString(3, deliveryOrder.getStreet());
-				stmt.setString(4, deliveryOrder.getCity());
-				stmt.setString(5, deliveryOrder.getState());
-				stmt.setInt(6, deliveryOrder.getZip());
-				stmt.setBoolean(7, deliveryOrder.getIsDelivered());
+
+				//NEED TO PARSE ADDRESS AND INSERT
+				/* 
+				stmt.setInt(1, o.getOrderID);
+				stmt.setInt(2, HouseNum);
+				stmt.setString(3, Street);
+				stmt.setString(4, City);
+				stmt.setString(5, State);
+				stmt.setInt(6, Zip);
+				stmt.setBoolean(7, IsDelivered);
+				*/
 				stmt.executeUpdate();
 			} else if ("DineIn"==(o.getOrderType())) {
 				String dineInQuery = "INSERT INTO DineIn (OrderID, TableNumber) VALUES (?, ?)";
@@ -170,9 +173,9 @@ public final class DBNinja {
 		 * This method returns the id of the pizza just added.
 		 * 
 		 */
-		Connection conn = DBNinja.getConnection();
+		connect_to_db();
 
-		int PizzaId = -1;
+		int PizzaID = -1;
 
 		String pizzaInsertQuery = "INSERT INTO Pizza (pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_PizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice, pizza_OrderID) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -203,7 +206,7 @@ public final class DBNinja {
 					try (PreparedStatement stmt2 = conn.prepareStatement(sql)) {
 						stmt2.setInt(1, PizzaID);             
 						stmt2.setInt(2, topping.getTopID());
-						toppingStmt.setInt(3, topping.getDoubled() ? 1 : 0); 
+						stmt2.setInt(3, topping.getDoubled() ? 1 : 0); 
 						stmt2.executeUpdate();  
 					}
 				 }
@@ -266,7 +269,7 @@ public final class DBNinja {
 		 * FOR newState = PICKEDUP: mark the pickup status
 		 * 
 		 */
-		Connection conn = DBNinja.getConnection();
+		connect_to_db();
 		try{
 			if(newState.equals(order_state.PREPARED)){
 				String updatePizza = "UPDATE pizza SET pizza_PizzaState=? WHERE ordertable_OrderID=?"; 
@@ -327,19 +330,19 @@ public final class DBNinja {
 	 * Don't forget to order the data coming from the database appropriately.
 	 *
 	 */
-		Connection conn = DBNinja.getConnection();
+		connect_to_db();
 		List<Order> orders = new ArrayList<>();
 
 		if(status == 1){
-			string queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = false";
+			String queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = false";
 		} else if (status == 2){
-			string queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = true";
+			String queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = true";
 		} else if (status == 3){
-			string queryOrder = "SELECT * FROM ordertable";
+			String queryOrder = "SELECT * FROM ordertable";
 		}
 
 		stmt = conn.prepareStatement(queryOrder);
-		rs = stmt.executeQuery();
+		ResultSet rs = stmt.executeQuery();
 
 		while(rs.next()){
 			int OrderID = rs.getInt("ordertable_OrderID");
@@ -353,7 +356,7 @@ public final class DBNinja {
 
 			if(OrderType.equals("Delivery")){
 
-				string queryOrderDelivery = 
+				String queryOrderDelivery = 
 				"SELECT delivery_HouseNum, delivery_Street, delivery_City, delivery_State, delivery_Zip, delivery_IsDelivered
 				FROM delivery 
 				WHERE ordertable_OrderID = ?";
@@ -380,7 +383,7 @@ public final class DBNinja {
 			} else if(OrderType.equals("DineIn")){
 				order = new DineinOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
 
-				string queryOrderDineIn = "SELECT dinein_TableNum FROM dinein WHERE ordertable_OrderID = ?";
+				String queryOrderDineIn = "SELECT dinein_TableNum FROM dinein WHERE ordertable_OrderID = ?";
 
 				prepareStatement stmt = conn.prepareStatement(queryOrderDineIn)
 				stmt.setInt(1, OrderID);
@@ -393,7 +396,7 @@ public final class DBNinja {
 			} else if(OrderType.equals("PickUp")){
 				order = new PickupOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
 
-				string queryOrderPickup = "SELECT pickup_IsPickedUp FROM pickup WHERE ordertable_OrderID = ?";
+				String queryOrderPickup = "SELECT pickup_IsPickedUp FROM pickup WHERE ordertable_OrderID = ?";
 
 				prepareStatement stmt = conn.prepareStatement(queryOrderPickup)
 				stmt.setInt(1, OrderID);
@@ -409,15 +412,17 @@ public final class DBNinja {
 			//populate the pizza list here
 
 			
-			string PizzaQuery = "SELECT 
+			String PizzaQuery = "SELECT 
 			pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_pizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice
 			FROM pizza WHERE ordertable_OrderID = ?";
 
-			prepareStatement stmtPizza = conn.prepareStatement(PizzaQuery)
+			prepareStatement stmtPizza = conn.prepareStatement(PizzaQuery);
+			stmtPizza.setInt(1, OrderID);
 			ResultSet rs = stmtPizza = stmtPizza.executeQuery();
 
 			ArrayList<Pizza> pizzas = new ArrayList<>();
 			while(rs.next){
+
 				int pizzaID = rs.getInt("pizza_PizzaID");
 				String pizzaSize = rs.getString("pizza_Size");
 				String pizzaCrustType = rs.getString("pizza_CrustType");
@@ -433,6 +438,15 @@ public final class DBNinja {
 				//get discounts
 				//get toppings
 
+				String toppingQuery = "SELECT 
+				pizza_topping.topping_TopID, pizza_topping.pizza_topping_IsDouble, topping.topping_TopName, topping.topping_SmallAMT, topping.topping_MedAMT, topping.topping_LgAMT, topping.topping_XLAMT,
+				topping.topping_CusPrice, topping.topping_BusPrice, topping.topping_MinINVT, topping.topping_CurINVT
+				FROM pizza_topping 
+				JOIN topping ON pizza_topping.topping_TopID = topping.topping_TopID
+				WHERE pizza_PizzaID = ?";
+
+				prepareStatement stmtPizza = conn.prepareStatement(PizzaQuery);
+				setDoubled
 				pizzas.add(pizza);
 
 			}
