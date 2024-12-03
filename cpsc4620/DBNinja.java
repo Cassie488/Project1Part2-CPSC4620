@@ -350,13 +350,18 @@ public final class DBNinja {
 	 *
 	 */
 		connect_to_db();
-		List<Order> orders = new ArrayList<>();
+		List<Order> ordersList = new ArrayList<>();
 		PreparedStatement stmtDelivery = null;
 		PreparedStatement stmtDineIn = null;
 		PreparedStatement stmtPickUp = null;
 		PreparedStatement stmt = null;
 		PreparedStatement stmtPizza = null;
-		PreparedStatement stmtTopping = null;
+		ResultSet rsPizza = null;
+		ResultSet rsOrder = null;
+		ResultSet rsDelivery = null;
+		ResultSet rsDineIn = null;
+		ResultSet rsPickUp = null;
+		
 
 		if(status == 1){
 			String queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = false";
@@ -367,16 +372,16 @@ public final class DBNinja {
 		}
 
 		stmt = conn.prepareStatement(queryOrder);
-		ResultSet rs = stmt.executeQuery();
+		ResultSet rsOrder = stmt.executeQuery();
 
-		while(rs.next()){
-			int OrderID = rs.getInt("ordertable_OrderID");
-			int CustID = rs.getInt("ordertable_CustID");
-			String OrderType = rs.getString("ordertable_OrderType");
-			String OrderString = rs.getString("ordertable_OrderDateTime");
-			Double CustPrice = rs.getDouble("ordertable_CustPrice");
-			Double BusPrice = rs.getDouble("ordertable_BusPrice");
-			Boolean isComplete = rs.getBoolean("ordertable_isComplete");
+		while(rsOrder.next()){
+			int OrderID = rsOrder.getInt("ordertable_OrderID");
+			int CustID = rsOrder.getInt("ordertable_CustID");
+			String OrderType = rsOrder.getString("ordertable_OrderType");
+			String OrderString = rsOrder.getString("ordertable_OrderDateTime");
+			double CustPrice = rsOrder.getDouble("ordertable_CustPrice");
+			double BusPrice = rsOrder.getDouble("ordertable_BusPrice");
+			Boolean isComplete = rsOrder.getBoolean("ordertable_isComplete");
 
 
 			if(OrderType.equals("Delivery")){
@@ -388,15 +393,15 @@ public final class DBNinja {
 
 				stmtDelivery = conn.prepareStatement(queryOrderDelivery)
 				stmtDelivery.setInt(1, OrderID);
-				ResultSet rs = stmtDelivery.executeQuery();
+				ResultSet rsDelivery = stmtDelivery.executeQuery();
 
-				if(rs.next()){
-					int houseNum = rs.getInt("delivery_HouseNum");
-					String street = rs.getString("delivery_Street");
-					String city = rs.getString("delivery_City");
-					String state = rs.getString("delivery_State");
-					int zipCode = rs.getInt("delivery_Zip");
-					boolean IsDelivered = rs.getBoolean("delivery_IsDelivered");
+				if(rsDelivery.next()){
+					int houseNum = rsDelivery.getInt("delivery_HouseNum");
+					String street = rsDelivery.getString("delivery_Street");
+					String city = rsDelivery.getString("delivery_City");
+					String state = rsDelivery.getString("delivery_State");
+					int zipCode = rsDelivery.getInt("delivery_Zip");
+					boolean IsDelivered = rsDelivery.getBoolean("delivery_IsDelivered");
 
 					order = new DeliveryOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete, IsDelivered);
 					
@@ -412,10 +417,10 @@ public final class DBNinja {
 
 				stmtDineIn = conn.prepareStatement(queryOrderDineIn)
 				stmtDineIn.setInt(1, OrderID);
-				ResultSet rs = stmtDineIn.executeQuery();
+				ResultSet rsDineIn = stmtDineIn.executeQuery();
 
-				if(rs.next()){
-					order.setTableNum(rs.getInt("dinein_TableNum"));
+				if(rsDineIn.next()){
+					order.setTableNum(rsDineIn.getInt("dinein_TableNum"));
 				}
 
 			} else if(OrderType.equals("PickUp")){
@@ -425,10 +430,10 @@ public final class DBNinja {
 
 				stmtPickUp = conn.prepareStatement(queryOrderPickup)
 				stmtPickUp.setInt(1, OrderID);
-				ResultSet rs = stmtPickUp.executeQuery();
+				ResultSet rsPickUp = stmtPickUp.executeQuery();
 
-				if(rs.next()){
-					order.setIsPickedUp(rs.getBoolean("pickup_IsPickedUP"));
+				if(rsPickUp.next()){
+					order.setIsPickedUp(rsPickUp.getBoolean("pickup_IsPickedUP"));
 				}
 
 			}
@@ -443,44 +448,37 @@ public final class DBNinja {
 
 			stmtPizza = conn.prepareStatement(PizzaQuery);
 			stmtPizza.setInt(1, OrderID);
-			ResultSet rs = stmtPizza = stmtPizza.executeQuery();
+			rsPizza = stmtPizza = stmtPizza.executeQuery();
 
-			ArrayList<Pizza> pizzas = new ArrayList<>();
-			while(rs.next){
+			ArrayList<Pizza> pizzasList = new ArrayList<>();
+			while(rsPizza.next){
 
-				int pizzaID = rs.getInt("pizza_PizzaID");
-				String pizzaSize = rs.getString("pizza_Size");
-				String pizzaCrustType = rs.getString("pizza_CrustType");
-				String pizzaState = rs.getString("pizza_pizzaState");
-				String pizzaDate = rs.getString("pizza_PizzaDate");
-				Double pizzaCustPrice = rs.getDouble("pizza_CustPrice");
-				Double pizzaBusPrice = rs.getDouble("pizza_BusPrice");
+				int pizzaID = rsPizza.getInt("pizza_PizzaID");
+				String pizzaSize = rsPizza.getString("pizza_Size");
+				String pizzaCrustType = rsPizza.getString("pizza_CrustType");
+				String pizzaState = rsPizza.getString("pizza_pizzaState");
+				String pizzaDate = rsPizza.getString("pizza_PizzaDate");
+				double pizzaCustPrice = rsPizza.getDouble("pizza_CustPrice");
+				double pizzaBusPrice = rsPizza.getDouble("pizza_BusPrice");
 
 				Pizza pizza = new Pizza(pizzaID, pizzaSize, pizzaCrustType, OrderID, pizzaState, pizzaDate,
 				pizzaCustPrice, pizzaBusPrice);
 
 
 				//get discounts
+				ArrayList<DiscountsPizza> discountList = new ArrayList<>();
+
+
 				//get toppings
+				ArrayList<Topping> toppingList = new ArrayList<>();
+				toppingList = getToppingsOnPizza(pizza);
+				pizza.setToppings(toppingList);
+				
 
-				ArrayList<Topping> toppings = new ArrayList<>();
-
-				String toppingQuery = "SELECT 
-				pizza_topping.topping_TopID, pizza_topping.pizza_topping_IsDouble, topping.topping_TopName, topping.topping_SmallAMT, topping.topping_MedAMT, topping.topping_LgAMT, topping.topping_XLAMT,
-				topping.topping_CusPrice, topping.topping_BusPrice, topping.topping_MinINVT, topping.topping_CurINVT
-				FROM pizza_topping 
-				JOIN topping ON pizza_topping.topping_TopID = topping.topping_TopID
-				WHERE pizza_PizzaID = ?";
-
-				stmtTopping = conn.prepareStatement(toppingQuery);
-
-				Topping(int topID, String topName, double smallAMT, double medAMT, double lgAMT, double xLAMT,
-				double custPrice, double busPrice, int minINVT, int curINVT)
-				setDoubled
-				pizzas.add(pizza);
+				pizzasList.add(pizza);
 
 			}
-			orders.add(order)
+			ordersList.add(order)
 		}
 			
 		return null;
@@ -639,8 +637,44 @@ public final class DBNinja {
 		 * This method builds an ArrayList of the toppings ON a pizza.
 		 * The list can then be added to the Pizza object elsewhere in the
 		 */
+				PreparedStatement stmtTopping = null;
+				ResultSet rsTopping = null;
+				ArrayList<Topping> toppingsList = new ArrayList<>();
 
-		return null;	
+				String toppingQuery = "SELECT 
+				pizza_topping.topping_TopID, pizza_topping.pizza_topping_IsDouble, topping.topping_TopName, topping.topping_SmallAMT, topping.topping_MedAMT, topping.topping_LgAMT, topping.topping_XLAMT,
+				topping.topping_CusPrice, topping.topping_BusPrice, topping.topping_MinINVT, topping.topping_CurINVT
+				FROM pizza_topping 
+				JOIN topping ON pizza_topping.topping_TopID = topping.topping_TopID
+				WHERE pizza_PizzaID = ?";
+
+				stmtTopping = conn.prepareStatement(toppingQuery);
+				stmtTopping.setInt(1, p.getPizzaID());
+				rsTopping = stmtTopping.executeQuery();
+
+				while(rsTopping.next){
+					int topID = rsTopping.getInt("topping_TopID");
+					Boolean isDoubleTopping = rsTopping.getBoolean("pizza_topping_IsDouble");
+					String topName = rsTopping.getString("topping_TopName");
+					double smallAMT = rsTopping.getDouble("topping_SmallAMT");
+					double medAMT = rsTopping.getDouble("topping_MedAMT");
+					double lgAMT = rsTopping.getDouble("topping_LgAMT");
+					double xLAMT = rsTopping.getDouble("topping_XLAMT");
+					double custPrice = rsTopping.getDouble("topping_CusPrice");
+					double busPrice = rsTopping.getDouble("topping_BusPrice");
+					int minINVT = rsTopping.getInt("topping_MinINVT");
+					int curINVT = rsTopping.getInt("topping_CurINVT");
+
+					Topping topping = new Topping(topID, topName, smallAMT, medAMT, lgAMT, xLAMT,
+					custPrice, busPrice, minINVT, curINVT);
+					topping.setDoubled(isDoubleTopping);
+
+					toppingsList.add(topping);
+	
+				}
+				stmtTopping.close();
+				rsTopping.close();
+				return toppingsList;	
 	}
 
 	public static void addToInventory(int toppingID, double quantity) throws SQLException, IOException 
@@ -677,6 +711,23 @@ public final class DBNinja {
 		 * Build an array list of all the Discounts associted with the Pizza.
 		 * 
 		 */
+		ResultSet rsDiscount = null;
+		PreparedStatement stmtDiscount = null;
+
+		ArrayList<DiscountsPizza> discountList = new ArrayList<>();
+
+		String discountQuery = "SELECT 
+		pizza_topping.topping_TopID, pizza_topping.pizza_topping_IsDouble, topping.topping_TopName, topping.topping_SmallAMT, topping.topping_MedAMT, topping.topping_LgAMT, topping.topping_XLAMT,
+		topping.topping_CusPrice, topping.topping_BusPrice, topping.topping_MinINVT, topping.topping_CurINVT
+		FROM pizza_discount  
+		JOIN discount ON pizza_discount.discount_DiscountID = discount.discount_DiscountID
+		WHERE discount_Discount_ID = ?";
+
+		stmtDiscount = conn.prepareStatement(discountQuery);
+		stmtDiscount.setInt(1, pizzaID);
+		rsDiscount = stmtDiscount = stmtDiscount.executeQuery();
+
+
 	
 		return null;
 	}
