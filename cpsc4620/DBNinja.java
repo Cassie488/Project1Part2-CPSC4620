@@ -358,6 +358,7 @@ public final class DBNinja {
 		ResultSet rsPickUp = null;
 		int tableNum = -1;
 		boolean ispickedUp = true;
+		Order order;
 		
 		String queryOrder = null;
 		if(status == 1){
@@ -553,17 +554,20 @@ public final class DBNinja {
 		 * If it's not found....then return null
 		 *  
 		 */
-		String customerQuery = "SELECT pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_pizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice FROM pizza WHERE ordertable_OrderID = ?";
+		int custID = -1;
+		int
+		String customerQuery = "SELECT customer_CustID, customer_FName, customer_LName " +
+		 "FROM customer WHERE customer_PhoneNum = ?";
 
-		stmtPizza = conn.prepareStatement(PizzaQuery);
-		stmtPizza.setInt(1, OrderID);
-		rsPizza = stmtPizza.executeQuery();
+		PreparedStatement stmtCustomer = conn.prepareStatement(customerQuery);
+		stmtCustomer.setInt(1, phoneNumber);
+		ResultSet rsCustomer = stmtCustomer.executeQuery();
 
-		ArrayList<Pizza> pizzasList = new ArrayList<>();
-		while(rsPizza.next()){
+		while(rsCustomer.next()){
 
-			int pizzaID = rsPizza.getInt("pizza_PizzaID");
-			String pizzaSize = rsPizza.getString
+			int pizzaID = rsCustomer.getInt("customer_CustID, customer_FName, customer_LName");
+			int pizzaID = rsCustomer.getInt("customer_CustID, customer_FName, customer_LName");
+			int pizzaID = rsCustomer.getInt("customer_CustID, customer_FName, customer_LName");
 		 	return null;
 		}
 	}
