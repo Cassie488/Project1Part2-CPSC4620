@@ -250,7 +250,7 @@ VALUES
 INSERT INTO pizza_topping
 VALUES
 ('15', '14', '1'), 
-('16', '2', '1'), 
+('16', '1', '1'), 
 ('16', '13', '0');
 
 INSERT INTO order_discount

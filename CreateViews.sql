@@ -2,20 +2,12 @@
 /*Mary Walker Felder and Cassie Phillips*/
 
 CREATE VIEW ToppingPopularity AS 
-	SELECT  
-		topping.topping_TopName AS Topping, 
-		SUM(CASE
-				WHEN pizza_topping.pizza_topping_IsDouble = 1 THEN 2
-				WHEN pizza_topping.pizza_topping_IsDouble = 0 THEN 1
-				ELSE 0
-			END) AS ToppingCount
-	FROM 
-		topping 
-		LEFT JOIN pizza_topping ON topping.topping_TopID = pizza_topping.topping_TopID
-    GROUP 
-		BY topping.topping_TopName
-	ORDER BY 
-		ToppingCount DESC, Topping ASC;
+	SELECT  topping.topping_TopName AS Topping, 
+			(CAST((count(case when pizza_topping.pizza_topping_IsDouble = 0 then 1 end) +
+					(count(case when pizza_topping.pizza_topping_IsDouble != 0 then 2 end)*2)) AS DECIMAL(4,0))) AS ToppingCount
+	FROM topping LEFT JOIN pizza_topping ON topping.topping_TopID = pizza_topping.topping_TopID
+    GROUP BY topping.topping_TopName
+	ORDER BY ToppingCount DESC, Topping ASC;
         
 CREATE VIEW ProfitByPizza AS 
 	SELECT 
@@ -58,5 +50,9 @@ CREATE VIEW ProfitByOrderType AS
                 2 as o
                 FROM ordertable ) TEMP1
 	ORDER BY
-		o, customerType, OrderMonth, Profit;
-		
+		o, CASE customerType 
+				WHEN 'dinein' THEN 1
+                WHEN 'pickup' THEN 2 
+                WHEN 'delivery' THEN 3
+                ELSE 4
+                END, TEMP1.Profit DESC;
