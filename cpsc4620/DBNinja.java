@@ -229,6 +229,7 @@ public final class DBNinja {
 			 rs.close();
 			 stmtTopping.close();
 			 stmtDiscount.close();
+			 conn.close();
 			 return PizzaID;
 		 }
 	}
