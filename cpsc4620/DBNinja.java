@@ -356,6 +356,8 @@ public final class DBNinja {
 		ResultSet rsDelivery = null;
 		ResultSet rsDineIn = null;
 		ResultSet rsPickUp = null;
+		int tableNum = -1;
+		boolean ispickedUp = true;
 		
 		String queryOrder = null;
 		if(status == 1){
@@ -395,18 +397,16 @@ public final class DBNinja {
 					int zipCode = rsDelivery.getInt("delivery_Zip");
 					boolean IsDelivered = rsDelivery.getBoolean("delivery_IsDelivered");
 
-					DeliveryOrder order = new DeliveryOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete, IsDelivered);
-					
+
 					String address = houseNum + " " + street + ", " + city + ", " + state + " " + zipCode;
 
-					order.setAddress(address);
+					DeliveryOrder order = new DeliveryOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, isComplete, address);
 				}
 				rsDelivery.close();
 				stmtDelivery.close();
 					
 				
 			} else if(OrderType.equals("DineIn")){
-				DineinOrder order = new DineinOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
 
 				String queryOrderDineIn = "SELECT dinein_TableNum FROM dinein WHERE ordertable_OrderID = ?";
 
@@ -415,13 +415,13 @@ public final class DBNinja {
 				rsDineIn = stmtDineIn.executeQuery();
 
 				if(rsDineIn.next()){
-					order.setTableNum(rsDineIn.getInt("dinein_TableNum"));
+					tableNum = rsDineIn.getInt("dinein_TableNum");
 				}
+				DineinOrder order = new DineinOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, isComplete, tableNum);
 				rsDineIn.close();
 				stmtDineIn.close();
 
 			} else if(OrderType.equals("PickUp")){
-				PickupOrder order = new PickupOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
 
 				String queryOrderPickup = "SELECT pickup_IsPickedUp FROM pickup WHERE ordertable_OrderID = ?";
 
@@ -430,8 +430,10 @@ public final class DBNinja {
 				rsPickUp = stmtPickUp.executeQuery();
 
 				if(rsPickUp.next()){
-					order.setIsPickedUp(rsPickUp.getBoolean("pickup_IsPickedUP"));
+					ispickedUp = rsPickUp.getBoolean("pickup_IsPickedUP");
 				}
+				PickupOrder order = new PickupOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, ispickedUp, isComplete);
+				
 				rsPickUp.close();
 				stmtPickUp.close();
 			}
