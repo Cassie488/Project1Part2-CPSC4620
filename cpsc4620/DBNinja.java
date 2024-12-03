@@ -97,7 +97,7 @@ public final class DBNinja {
 			stmt.setInt(1, o.getOrderID());
 			stmt.setInt(2, (o.getCustID() == -1 ? null : o.getCustID())); // Handle no customer for Dine In
 			stmt.setString(3, o.getOrderType());
-			stmt.setTimeStamp(4, o.getDate());
+			stmt.setString(4, o.getDate());
 			stmt.setDouble(5, o.getCustPrice());
 			stmt.setDouble(6, o.getBusPrice());
 			stmt.setBoolean(7, o.getIsComplete());
@@ -183,7 +183,7 @@ public final class DBNinja {
 			 pizzaStmt.setString(2, p.getSize());
 			 pizzaStmt.setString(3, p.getCrustType());
 			 pizzaStmt.setString(4, p.getPizzaState());
-			 pizzaStmt.setTimeStamp(5, p.getPizzaDate());
+			 pizzaStmt.setString(5, p.getPizzaDate());
 			 pizzaStmt.setDouble(6, p.getCustPrice());
 			 pizzaStmt.setDouble(7, p.getBusPrice());
 			 pizzaStmt.setInt(8, orderID);
@@ -343,52 +343,98 @@ public final class DBNinja {
 		while(rs.next()){
 			int OrderID = rs.getInt("ordertable_OrderID");
 			int CustID = rs.getInt("ordertable_CustID");
-			int OrderType = rs.getString("ordertable_OrderType");
-			int OrderDateTime = rs.getTimeStamp("ordertable_OrderDateTime");
-			int CustPrice = rs.getDouble("ordertable_CustPrice");
-			int BusPrice = rs.getDouble("ordertable_BusPrice");
-			int isComplete = rs.getBoolean("ordertable_isComplete");
-			if(OrderType.equals("Delivery")){
-				order = new DeliveryOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
-				
-				//need to get delivery specific attributes populated
+			String OrderType = rs.getString("ordertable_OrderType");
+			String OrderString = rs.getString("ordertable_OrderDateTime");
+			Double CustPrice = rs.getDouble("ordertable_CustPrice");
+			Double BusPrice = rs.getDouble("ordertable_BusPrice");
+			Boolean isComplete = rs.getBoolean("ordertable_isComplete");
 
-				string queryOrderDelivery = "SELECT pickup_IsPickedUp FROM pickup WHERE ordertable_OrderID = ?";
+
+			if(OrderType.equals("Delivery")){
+
+				string queryOrderDelivery = 
+				"SELECT delivery_HouseNum, delivery_Street, delivery_City, delivery_State, delivery_Zip, delivery_IsDelivered
+				FROM delivery 
+				WHERE ordertable_OrderID = ?";
+
 				prepareStatement stmt = conn.prepareStatement(queryOrderDelivery)
 				stmt.setInt(1, OrderID);
 				ResultSet rs = stmt.executeQuery();
+
 				if(rs.next()){
-					order.setIsPickedUp(rs.getBoolean("pickup_IsPickedUP"));
+					int houseNum = rs.getInt("delivery_HouseNum");
+					String street = rs.getString("delivery_Street");
+					String city = rs.getString("delivery_City");
+					String state = rs.getString("delivery_State");
+					int zipCode = rs.getInt("delivery_Zip");
+					boolean IsDelivered = rs.getBoolean("delivery_IsDelivered");
+
+					order = new DeliveryOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete, IsDelivered);
+					
+					String address = houseNum + " " + street + ", " + city + ", " + state + " " zipCode;
+
+					order.setAddress(address);
 				}
 				
 			} else if(OrderType.equals("DineIn")){
 				order = new DineinOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
 
 				string queryOrderDineIn = "SELECT dinein_TableNum FROM dinein WHERE ordertable_OrderID = ?";
+
 				prepareStatement stmt = conn.prepareStatement(queryOrderDineIn)
 				stmt.setInt(1, OrderID);
 				ResultSet rs = stmt.executeQuery();
+
 				if(rs.next()){
 					order.setTableNum(rs.getInt("dinein_TableNum"));
 				}
-				//need to get dineIn specific attributes populated
+
 			} else if(OrderType.equals("PickUp")){
 				order = new PickupOrder(OrderID, CustID, OrderType, OrderDateTime, CustPrice, BusPrice, isComplete);
-				//need to get pickup specific attributes populated
 
 				string queryOrderPickup = "SELECT pickup_IsPickedUp FROM pickup WHERE ordertable_OrderID = ?";
+
 				prepareStatement stmt = conn.prepareStatement(queryOrderPickup)
 				stmt.setInt(1, OrderID);
 				ResultSet rs = stmt.executeQuery();
+
 				if(rs.next()){
 					order.setIsPickedUp(rs.getBoolean("pickup_IsPickedUP"));
 				}
-
 
 			}
 
 			//populate the discount list
 			//populate the pizza list here
+
+			
+			string PizzaQuery = "SELECT 
+			pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_pizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice
+			FROM pizza WHERE ordertable_OrderID = ?";
+
+			prepareStatement stmtPizza = conn.prepareStatement(PizzaQuery)
+			ResultSet rs = stmtPizza = stmtPizza.executeQuery();
+
+			ArrayList<Pizza> pizzas = new ArrayList<>();
+			while(rs.next){
+				int pizzaID = rs.getInt("pizza_PizzaID");
+				String pizzaSize = rs.getString("pizza_Size");
+				String pizzaCrustType = rs.getString("pizza_CrustType");
+				String pizzaState = rs.getString("pizza_pizzaState");
+				String pizzaDate = rs.getString("pizza_PizzaDate");
+				Double pizzaCustPrice = rs.getDouble("pizza_CustPrice");
+				Double pizzaBusPrice = rs.getDouble("pizza_BusPrice");
+				
+				Pizza pizza = new Pizza(pizzaID, pizzaSize, pizzaCrustType, OrderID, pizzaState, pizzaDate,
+				pizzaCustPrice, pizzaBusPrice);
+
+
+				//get discounts
+				//get toppings
+
+				pizzas.add(pizza);
+
+			}
 			orders.add(order)
 		}
 			
