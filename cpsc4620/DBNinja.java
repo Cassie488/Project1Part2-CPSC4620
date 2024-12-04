@@ -96,7 +96,7 @@ public final class DBNinja {
 			conn.setAutoCommit(false); // Begin transaction
 
 			// Insert into Order table
-			String orderQuery = "INSERT INTO Order "
+			String orderQuery = "INSERT INTO 'Order' "
 			+ "(ordertable_OrderID, customer_CustID, ordertable_OrderType, " +
 			"ordertable_OrderDateTime, ordertable_CustPrice, " +
 			"ordertable_BusPrice, ordertable_IsComplete) VALUES (?, ?, ?, ?, ?, ?)";
@@ -107,11 +107,12 @@ public final class DBNinja {
 				stmt.setInt(2, o.getCustID()); // Handle no customer for Dine In
 			}
 			else {
-				stmt.setNull(2, NULL);
+				stmt.setNull(2, java.sql.Types.INTEGER);
 			}
 
 			stmt.setString(3, o.getOrderType());
-			stmt.setTimestamp(4, o.getDate());
+			//Date date_temp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(o.getDate());
+			stmt.setDate(4, java.sql.Date.valueOf(o.getDate()));
 			stmt.setDouble(5, o.getCustPrice());
 			stmt.setDouble(6, o.getBusPrice());
 			stmt.setBoolean(7, o.getIsComplete());
@@ -119,7 +120,7 @@ public final class DBNinja {
 
 			for (Pizza pizza : o.getPizzaList()) {
 				String pizzaDate = pizza.getPizzaDate();
-				Date date = new SimpleDateFormat("yyyy--MM--dd HH:mm:ss").parse(pizzaDate);
+				Date date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(pizzaDate);
 				addPizza(date, o.getOrderID(), pizza);
 			}
 
@@ -220,6 +221,7 @@ public final class DBNinja {
 		ResultSet rs = null;
 		PreparedStatement stmtTopping = null;
 		PreparedStatement stmtDiscount = null;
+		PreparedStatement stmtInventoryUpdate = null;
 
 		String pizzaInsertQuery = "INSERT INTO Pizza (pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_PizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice, pizza_OrderID) "
 				+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -231,7 +233,7 @@ public final class DBNinja {
 			pizzaStmt.setString(2, p.getSize());
 			pizzaStmt.setString(3, p.getCrustType());
 			pizzaStmt.setString(4, p.getPizzaState());
-			pizzaStmt.setTimestamp(5, p.getPizzaDate());
+			pizzaStmt.setDate(5, new java.sql.Date(d.getTime()));
 			pizzaStmt.setDouble(6, p.getCustPrice());
 			pizzaStmt.setDouble(7, p.getBusPrice());
 			pizzaStmt.setInt(8, orderID);
@@ -251,6 +253,32 @@ public final class DBNinja {
 				stmtTopping.setInt(2, topping.getTopID());
 				stmtTopping.setInt(3, topping.getDoubled() ? 1 : 0);
 				stmtTopping.executeUpdate();
+
+				double toppingAmount = 0.0;
+				//Updating inventory
+				if(p.getSize().equals(size_s)){
+					toppingAmount = topping.getSmallAMT();
+				}else if(p.getSize().equals(size_m)){
+					toppingAmount = topping.getMedAMT();
+				}else if(p.getSize().equals(size_l)){
+					toppingAmount = topping.getLgAMT();
+				}else if(p.getSize().equals(size_xl)){
+					toppingAmount = topping.getXLAMT();
+				}
+
+				boolean toppingIsDoubled = topping.getDoubled();
+				double finalToppingAmount = 0.0;
+
+				if(toppingIsDoubled){
+					finalToppingAmount = toppingAmount * 2;
+				} else {
+					finalToppingAmount = toppingAmount;
+				}
+				String inventoryUpdateQuery = "UPDATE topping SET toppping_CurINVT = toppping_CurINVT - ? WHERE topping_TopID = ?";
+				stmtInventoryUpdate = conn.prepareStatement(inventoryUpdateQuery);
+				stmtInventoryUpdate.setDouble(1, finalToppingAmount);
+				stmtInventoryUpdate.setInt(2, topping.getTopID());
+				stmtInventoryUpdate.executeUpdate();
 			}
 
 			for (Discount discount : p.getDiscounts()) {
@@ -266,6 +294,7 @@ public final class DBNinja {
 			rs.close();
 			stmtTopping.close();
 			stmtDiscount.close();
+			stmtInventoryUpdate.close();
 			conn.close();
 		}
 		return PizzaID;
