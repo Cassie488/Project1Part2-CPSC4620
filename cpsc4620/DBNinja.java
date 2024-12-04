@@ -527,17 +527,25 @@ public final class DBNinja {
 		PreparedStatement stmtDiscount = null;
 		ResultSet rsDiscount = null;
 
-		String discountQuery = "SELECT customer_CustID, customer_FName, customer_LName " +
-		"FROM customer WHERE customer_PhoneNum = ?";
+		String discountQuery = "SELECT * FROM discount";
 
-		PreparedStatement stmtCustomer = conn.prepareStatement(customerQuery);
-		stmtCustomer.setString(1, phoneNumber);
-		ResultSet rsCustomer = stmtCustomer.executeQuery();
+		stmtDiscount = conn.prepareStatement(discountQuery);
+		rsDiscount = stmtDiscount.executeQuery();
 
-		while(rsCustomer.next()){
+		while(rsDiscount.next()){
+			int discountID = rsDiscount.getInt("discount_DiscountID");
+			String discountName = rsDiscount.getString("discount_DiscountName");
+			double discountAmount = rsDiscount.getDouble("discount_Amount");
+			Boolean discountPercent = rsDiscount.getBoolean("discount_IsPercent");
 
+			Discount discount = new Discount(discountID, discountName, discountAmount, discountPercent);
+			discountList.add(discount);
+		}
+		
+		rsDiscount.close();
+		stmtDiscount.close();
 		conn.close();
-		return null;
+		return discountList;
 	}
 
 	public static Discount findDiscountByName(String name) throws SQLException, IOException 
