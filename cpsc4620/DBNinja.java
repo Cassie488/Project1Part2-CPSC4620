@@ -96,26 +96,26 @@ public final class DBNinja {
 			conn.setAutoCommit(false); // Begin transaction
 
 			// Insert into Order table
-			String orderQuery = "INSERT INTO `Order` (ordertable_OrderID, customer_CustID, ordertable_OrderType, ordertable_OrderDateTime, ordertable_CustPrice, ordertable_BusPrice, ordertable_IsComplete) VALUES (?, ?, ?, ?, ?, ?)";
+			String orderQuery = "INSERT INTO Order "
+			+ "(ordertable_OrderID, customer_CustID, ordertable_OrderType, " +
+			"ordertable_OrderDateTime, ordertable_CustPrice, " +
+			"ordertable_BusPrice, ordertable_IsComplete) VALUES (?, ?, ?, ?, ?, ?)";
 			stmt = conn.prepareStatement(orderQuery, Statement.RETURN_GENERATED_KEYS);
 			stmt.setInt(1, o.getOrderID());
+
 			if (o.getCustID() != -1) {
 				stmt.setInt(2, o.getCustID()); // Handle no customer for Dine In
 			}
 			else {
 				stmt.setNull(2, NULL);
 			}
+
 			stmt.setString(3, o.getOrderType());
-			stmt.setString(4, o.getDate());
+			stmt.setTimestamp(4, o.getDate());
 			stmt.setDouble(5, o.getCustPrice());
 			stmt.setDouble(6, o.getBusPrice());
 			stmt.setBoolean(7, o.getIsComplete());
 			stmt.executeUpdate();
-
-			ResultSet rs = stmt.getGeneratedKeys();
-			if (rs.next()) {
-				int tempID = rs.getInt(1);
-			}
 
 			for (Pizza pizza : o.getPizzaList()) {
 				String pizzaDate = pizza.getPizzaDate();
@@ -132,40 +132,67 @@ public final class DBNinja {
 			}
 
 			//FIX THE COMPARISIONS CASSIE TY
-			if ("Delivery"==(o.getOrderType())) {
+			if ("Delivery".equals(o.getOrderType())) {
 				String deliveryQuery = "INSERT INTO Delivery (OrderID, HouseNum, Street, City, State, Zip, IsDelivered) VALUES (?, ?, ?, ?, ?, ?, ?)";
 				DeliveryOrder deliveryOrder = (DeliveryOrder) o;
 				stmt = conn.prepareStatement(deliveryQuery);
 
-				//NEED TO PARSE ADDRESS AND INSERT
-				/*
-				stmt.setInt(1, o.getOrderID);
-				stmt.setInt(2, HouseNum);
-				stmt.setString(3, Street);
-				stmt.setString(4, City);
-				stmt.setString(5, State);
-				stmt.setInt(6, Zip);
-				stmt.setBoolean(7, IsDelivered);
-				*/
+				//123 main st, charleston, SC 29466
+				String address = deliveryOrder.getAddress();
+
+				String[] parts = address.split(", ");
+
+				String street = parts[0];
+				String city = parts[1];
+				String stateZip = parts[2];
+
+				String[] stateZipParts = stateZip.split(" ");
+
+				String state = stateZipParts[0];
+				String zipCode = stateZipParts[1];
+
+				String[] streetParts = street.split(" ", 2);
+				String houseNum = streetParts[0]; // The first word is the house number
+				String streetName = streetParts[1];
+
+
+				int zipCodeInt = Integer.parseInt(zipCode);
+				int houseNumInt = Integer.parseInt(houseNum);
+
+
+				stmt.setInt(1, o.getOrderID());
+				stmt.setInt(2, houseNumInt);
+				stmt.setString(3, streetName);
+				stmt.setString(4, city);
+				stmt.setString(5, state);
+				stmt.setInt(6, zipCodeInt);
+				stmt.setBoolean(7, deliveryOrder.getIsDelivered());
+
 				stmt.executeUpdate();
-			} else if ("DineIn"==(o.getOrderType())) {
+			} else if ("DineIn".equals(o.getOrderType())) {
+
 				String dineInQuery = "INSERT INTO DineIn (OrderID, TableNumber) VALUES (?, ?)";
 				DineinOrder dineinOrder = (DineinOrder) o;
 				stmt = conn.prepareStatement(dineInQuery);
+
 				stmt.setInt(1, o.getOrderID());
 				stmt.setInt(2, dineinOrder.getTableNum());
+
 				stmt.executeUpdate();
-			} else if ("Pickup"==(o.getOrderType())) {
+
+			} else if ("Pickup".equals(o.getOrderType())) {
+
 				String pickupQuery = "INSERT INTO Pickup (OrderID, IsPickedUp) VALUES (?, ?)";
 				PickupOrder pickupOrder = (PickupOrder) o;
 				stmt = conn.prepareStatement(pickupQuery);
+
 				stmt.setInt(1, o.getOrderID());
 				stmt.setBoolean(2, pickupOrder.getIsPickedUp());
+
 				stmt.executeUpdate();
 			}
 
 			conn.commit();
-			rs.close();
 			stmt.close();
 		} catch (SQLException e){
 			conn.rollback();
@@ -204,7 +231,7 @@ public final class DBNinja {
 			pizzaStmt.setString(2, p.getSize());
 			pizzaStmt.setString(3, p.getCrustType());
 			pizzaStmt.setString(4, p.getPizzaState());
-			pizzaStmt.setString(5, p.getPizzaDate());
+			pizzaStmt.setTimestamp(5, p.getPizzaDate());
 			pizzaStmt.setDouble(6, p.getCustPrice());
 			pizzaStmt.setDouble(7, p.getBusPrice());
 			pizzaStmt.setInt(8, orderID);
