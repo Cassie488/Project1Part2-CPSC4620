@@ -593,7 +593,31 @@ public final class DBNinja {
 		 * Don't forget to order the data coming from the database appropriately.
 		 * 
 		*/
-		return null;
+		connect_to_db();
+		ArrayList<Customer> customerList = new ArrayList<>();
+		
+		PreparedStatement stmtCustomer = null;
+		ResultSet rsCustomer = null;
+
+		String discountQuery = "SELECT * FROM customer";
+
+		stmtCustomer = conn.prepareStatement(discountQuery);
+		rsCustomer = stmtCustomer.executeQuery();
+
+		while(rsCustomer.next()){
+			int custID = rsCustomer.getInt("customer_CustID");
+			String custFname = rsCustomer.getString("customer_FName");
+			String custLName = rsCustomer.getString("customer_LName");
+			String custPhoneNum = rsCustomer.getString("customer_PhoneNum");
+
+			Customer customer = new Customer(custID, custFname, custLName, custPhoneNum);
+			customerList.add(customer);
+		}
+		
+		rsCustomer.close();
+		stmtCustomer.close();
+		conn.close();
+		return customerList;
 	}
 
 	public static Customer findCustomerByPhone(String phoneNumber)  throws SQLException, IOException 
