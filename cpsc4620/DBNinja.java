@@ -556,8 +556,33 @@ public final class DBNinja {
 		 * If it's not found....then return null
 		 *  
 		 */
-		weeeeeeeee im doing this too
-		 return null;
+		
+
+		 connect_to_db();
+
+		 Discount discount = null;
+		 PreparedStatement stmtDiscount = null;
+		 ResultSet rsDiscount = null;
+ 
+		 String discountQuery = "SELECT discount_DiscountID, discount_Amount, discount_IsPercent " +
+		 "FROM discount WHERE discount_DiscountName = ?";
+ 
+		 stmtDiscount = conn.prepareStatement(discountQuery);
+		 stmtDiscount.setString(1, name);
+		 rsDiscount = stmtDiscount.executeQuery();
+ 
+		 while(rsDiscount.next()){
+			 int discountID = rsDiscount.getInt("discount_DiscountID");
+			 double discountAmount = rsDiscount.getDouble("discount_Amount");
+			 Boolean discountPercent = rsDiscount.getBoolean("discount_IsPercent");
+ 
+			 discount = new Discount(discountID, name, discountAmount, discountPercent);
+		 }
+		 
+		 rsDiscount.close();
+		 stmtDiscount.close();
+		 conn.close();
+		 return discount;
 	}
 
 
