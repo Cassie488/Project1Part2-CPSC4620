@@ -723,6 +723,7 @@ public final class DBNinja {
 		 * Don't forget to order the data coming from the database appropriately.
 		 * 
 		 */
+		cassie can do this
 		return null;
 	}
 
@@ -734,6 +735,7 @@ public final class DBNinja {
 		 * If it's not found....then return null
 		 *  
 		 */
+		cassie can do this
 		 return null;
 	}
 
@@ -800,6 +802,7 @@ public final class DBNinja {
 		 * Build an ArrayList of all the Pizzas associated with the Order.
 		 * 
 		 */
+		cassie can do this
 		return null;
 	}
 
@@ -889,6 +892,7 @@ public final class DBNinja {
 		 * Query the database fro the base customer price for that size and crust pizza.
 		 * 
 		*/
+		cassie can do this
 		return 0.0;
 	}
 
@@ -898,6 +902,8 @@ public final class DBNinja {
 		 * Query the database fro the base business price for that size and crust pizza.
 		 * 
 		*/
+
+		cassie can do this
 		return 0.0;
 	}
 
