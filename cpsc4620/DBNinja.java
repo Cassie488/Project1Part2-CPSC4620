@@ -521,6 +521,22 @@ public final class DBNinja {
 		 * return them in an arrayList of discounts ordered by discount name.
 		 * 
 		*/
+		connect_to_db();
+		ArrayList<Discount> discountList = new ArrayList<>();
+		
+		PreparedStatement stmtDiscount = null;
+		ResultSet rsDiscount = null;
+
+		String discountQuery = "SELECT customer_CustID, customer_FName, customer_LName " +
+		"FROM customer WHERE customer_PhoneNum = ?";
+
+		PreparedStatement stmtCustomer = conn.prepareStatement(customerQuery);
+		stmtCustomer.setString(1, phoneNumber);
+		ResultSet rsCustomer = stmtCustomer.executeQuery();
+
+		while(rsCustomer.next()){
+
+		conn.close();
 		return null;
 	}
 
@@ -532,6 +548,7 @@ public final class DBNinja {
 		 * If it's not found....then return null
 		 *  
 		 */
+		weeeeeeeee im doing this too
 		 return null;
 	}
 
@@ -554,6 +571,7 @@ public final class DBNinja {
 		 * If it's not found....then return null
 		 *  
 		 */
+		connect_to_db();
 		int custID = -1;
 		String custFirstName = null;
 		String custLastName = null;
@@ -572,6 +590,9 @@ public final class DBNinja {
 
 		Customer customer = new Customer(custID, custFirstName, custLastName, phoneNumber);
 
+		conn.close();
+		stmtCustomer.close();
+		rsCustomer.close();
 		return customer;
 	}
 
