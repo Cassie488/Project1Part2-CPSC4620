@@ -350,8 +350,6 @@ public final class DBNinja {
 		PreparedStatement stmtDineIn = null;
 		PreparedStatement stmtPickUp = null;
 		PreparedStatement stmt = null;
-		PreparedStatement stmtPizza = null;
-		ResultSet rsPizza = null;
 		ResultSet rsOrder = null;
 		ResultSet rsDelivery = null;
 		ResultSet rsDineIn = null;
@@ -447,49 +445,13 @@ public final class DBNinja {
 
 
 			//populate the pizza list here
-
-			
-			String PizzaQuery = "SELECT pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_pizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice FROM pizza WHERE ordertable_OrderID = ?";
-
-			stmtPizza = conn.prepareStatement(PizzaQuery);
-			stmtPizza.setInt(1, OrderID);
-			rsPizza = stmtPizza.executeQuery();
-
 			ArrayList<Pizza> pizzasList = new ArrayList<>();
-			while(rsPizza.next()){
-
-				int pizzaID = rsPizza.getInt("pizza_PizzaID");
-				String pizzaSize = rsPizza.getString("pizza_Size");
-				String pizzaCrustType = rsPizza.getString("pizza_CrustType");
-				String pizzaState = rsPizza.getString("pizza_pizzaState");
-				String pizzaDate = rsPizza.getString("pizza_PizzaDate");
-				double pizzaCustPrice = rsPizza.getDouble("pizza_CustPrice");
-				double pizzaBusPrice = rsPizza.getDouble("pizza_BusPrice");
-
-				Pizza pizza = new Pizza(pizzaID, pizzaSize, pizzaCrustType, OrderID, pizzaState, pizzaDate,
-				pizzaCustPrice, pizzaBusPrice);
-
-
-				//get discounts
-				ArrayList<Discount> discountListPizza = new ArrayList<>();
-				discountListPizza = getDiscounts(pizza);
-				pizza.setDiscounts(discountListPizza);
-
-
-				//get toppings
-				ArrayList<Topping> toppingList = new ArrayList<>();
-				toppingList = getToppingsOnPizza(pizza);
-				pizza.setToppings(toppingList);
-				
-
-				pizzasList.add(pizza);
-
-			}
+			pizzasList = getPizzas(order);
+			order.setPizzaList(pizzasList);
+		
 			ordersList.add(order);
 		}
 		stmt.close();
-		stmtPizza.close();
-		rsPizza.close();
 		rsOrder.close();
 		return null;
 	}
@@ -862,8 +824,50 @@ public final class DBNinja {
 		 * Build an ArrayList of all the Pizzas associated with the Order.
 		 * 
 		 */
-		cassie can do this
-		return null;
+			connect_to_db();
+			PreparedStatement stmtPizza = null;
+			ResultSet rsPizza = null;
+			String PizzaQuery = "SELECT pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_pizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice FROM pizza WHERE ordertable_OrderID = ?";
+
+			stmtPizza = conn.prepareStatement(PizzaQuery);
+			stmtPizza.setInt(1, o.getOrderID());
+			rsPizza = stmtPizza.executeQuery();
+
+			ArrayList<Pizza> pizzasList = new ArrayList<>();
+			while(rsPizza.next()){
+
+				int pizzaID = rsPizza.getInt("pizza_PizzaID");
+				String pizzaSize = rsPizza.getString("pizza_Size");
+				String pizzaCrustType = rsPizza.getString("pizza_CrustType");
+				String pizzaState = rsPizza.getString("pizza_pizzaState");
+				String pizzaDate = rsPizza.getString("pizza_PizzaDate");
+				double pizzaCustPrice = rsPizza.getDouble("pizza_CustPrice");
+				double pizzaBusPrice = rsPizza.getDouble("pizza_BusPrice");
+
+				Pizza pizza = new Pizza(pizzaID, pizzaSize, pizzaCrustType, o.getOrderID(), pizzaState, pizzaDate,
+				pizzaCustPrice, pizzaBusPrice);
+
+
+				//get discounts
+				ArrayList<Discount> discountListPizza = new ArrayList<>();
+				discountListPizza = getDiscounts(pizza);
+				pizza.setDiscounts(discountListPizza);
+
+
+				//get toppings
+				ArrayList<Topping> toppingList = new ArrayList<>();
+				toppingList = getToppingsOnPizza(pizza);
+				pizza.setToppings(toppingList);
+				
+
+				pizzasList.add(pizza);
+
+			}
+		
+		rsPizza.close();
+		stmtPizza.close();
+		conn.close();
+		return pizzasList;
 	}
 
 	public static ArrayList<Discount> getDiscounts(Order o) throws SQLException, IOException 
@@ -952,7 +956,7 @@ public final class DBNinja {
 		 * Query the database fro the base customer price for that size and crust pizza.
 		 * 
 		*/
-		cassie can do this
+		//cassie can do this
 		return 0.0;
 	}
 
@@ -963,7 +967,7 @@ public final class DBNinja {
 		 * 
 		*/
 
-		cassie can do this
+		//cassie can do this
 		return 0.0;
 	}
 
