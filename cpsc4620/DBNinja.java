@@ -358,7 +358,7 @@ public final class DBNinja {
 		ResultSet rsPickUp = null;
 		int tableNum = -1;
 		boolean ispickedUp = true;
-		Order order;
+		Order order = null;
 		
 		String queryOrder = null;
 		if(status == 1){
@@ -401,7 +401,7 @@ public final class DBNinja {
 
 					String address = houseNum + " " + street + ", " + city + ", " + state + " " + zipCode;
 
-					DeliveryOrder order = new DeliveryOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, isComplete, address);
+					order = new DeliveryOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, isComplete, address, IsDelivered);
 				}
 				rsDelivery.close();
 				stmtDelivery.close();
@@ -418,7 +418,7 @@ public final class DBNinja {
 				if(rsDineIn.next()){
 					tableNum = rsDineIn.getInt("dinein_TableNum");
 				}
-				DineinOrder order = new DineinOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, isComplete, tableNum);
+				order = new DineinOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, isComplete, tableNum);
 				rsDineIn.close();
 				stmtDineIn.close();
 
@@ -433,7 +433,7 @@ public final class DBNinja {
 				if(rsPickUp.next()){
 					ispickedUp = rsPickUp.getBoolean("pickup_IsPickedUP");
 				}
-				PickupOrder order = new PickupOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, ispickedUp, isComplete);
+				order = new PickupOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, ispickedUp, isComplete);
 				
 				rsPickUp.close();
 				stmtPickUp.close();
@@ -555,21 +555,24 @@ public final class DBNinja {
 		 *  
 		 */
 		int custID = -1;
-		int
+		String custFirstName = null;
+		String custLastName = null;
 		String customerQuery = "SELECT customer_CustID, customer_FName, customer_LName " +
 		 "FROM customer WHERE customer_PhoneNum = ?";
 
 		PreparedStatement stmtCustomer = conn.prepareStatement(customerQuery);
-		stmtCustomer.setInt(1, phoneNumber);
+		stmtCustomer.setString(1, phoneNumber);
 		ResultSet rsCustomer = stmtCustomer.executeQuery();
 
 		while(rsCustomer.next()){
-
-			int pizzaID = rsCustomer.getInt("customer_CustID, customer_FName, customer_LName");
-			int pizzaID = rsCustomer.getInt("customer_CustID, customer_FName, customer_LName");
-			int pizzaID = rsCustomer.getInt("customer_CustID, customer_FName, customer_LName");
-		 	return null;
+			custID = rsCustomer.getInt("customer_CustID");
+			custFirstName = rsCustomer.getString("customer_FName");
+			custLastName = rsCustomer.getString("customer_LName");
 		}
+
+		Customer customer = new Customer(custID, custFirstName, custLastName, phoneNumber);
+
+		return customer;
 	}
 
 	public static String getCustomerName(int CustID) throws SQLException, IOException 
