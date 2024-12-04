@@ -962,8 +962,8 @@ public final class DBNinja {
 		PreparedStatement stmtCustPrice = null;
 		ResultSet rsCustPrice = null;
 
-		String discountQuery = "SELECT pizza_CustPrice FROM pizza " +
-		"WHERE pizza_Size = ? AND pizza_CrustType = ?";
+		String discountQuery = "SELECT baseprice_CustPrice FROM baseprice " +
+		"WHERE baseprice_Size = ? AND baseprice_CrustType = ?";
 
 		stmtCustPrice = conn.prepareStatement(discountQuery);
 		stmtCustPrice.setString(1, size);
@@ -971,7 +971,7 @@ public final class DBNinja {
 		rsCustPrice = stmtCustPrice.executeQuery();
 
 		if (rsCustPrice.next()){
-			customerPrice = rsCustPrice.getDouble("pizza_CustPrice");
+			customerPrice = rsCustPrice.getDouble("baseprice_CustPrice");
 		}
 		
 		rsCustPrice.close();
@@ -987,8 +987,28 @@ public final class DBNinja {
 		 * 
 		*/
 
-		//cassie can do this
-		return 0.0;
+		connect_to_db();
+
+		double businessPrice = 0.0;
+		PreparedStatement stmtBusPrice = null;
+		ResultSet rsBusPrice = null;
+
+		String discountQuery = "SELECT baseprice_BusPrice FROM baseprice " +
+		"WHERE baseprice_Size = ? AND baseprice_CrustType = ?";
+
+		stmtBusPrice = conn.prepareStatement(discountQuery);
+		stmtBusPrice.setString(1, size);
+		stmtBusPrice.setString(2, crust);
+		rsBusPrice = stmtBusPrice.executeQuery();
+
+		if (rsBusPrice.next()){
+			businessPrice = rsBusPrice.getDouble("baseprice_BusPrice");
+		}
+		
+		rsBusPrice.close();
+		stmtBusPrice.close();
+		conn.close();
+		return businessPrice;
 	}
 
 	
