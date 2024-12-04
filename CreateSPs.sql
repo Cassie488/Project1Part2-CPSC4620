@@ -143,7 +143,7 @@ BEGIN
 END 
 $$
 DELIMITER ;
-
+/*
 DROP TRIGGER IF EXISTS UpdatePizzaPrice
 DELIMITER $$
 CREATE TRIGGER UpdatePizzaPrice
@@ -172,3 +172,4 @@ BEGIN
 END;
 $$
 DELIMITER;
+*/
