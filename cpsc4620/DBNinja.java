@@ -107,10 +107,10 @@ public final class DBNinja {
 				int tempID = rs.getInt(1);
 			}
 
-			//for (Pizza pizza : o.getPizzaList()) {
-
-			//	addPizza(pizza.getPizzaDate(), o.getOrderID(), pizza);
-			//}
+			for (Pizza pizza : o.getPizzaList()) {
+				
+				addPizza(pizza.getPizzaDate(), o.getOrderID(), pizza);
+			}
 
 			for (Discount discount : o.getDiscountList()) {
 				String discountQuery = "INSERT INTO Order_Discount (OrderID, DiscountID) VALUES (?, ?)";
@@ -127,7 +127,7 @@ public final class DBNinja {
 				stmt = conn.prepareStatement(deliveryQuery);
 
 				//NEED TO PARSE ADDRESS AND INSERT
-				/*
+				/* 
 				stmt.setInt(1, o.getOrderID);
 				stmt.setInt(2, HouseNum);
 				stmt.setString(3, Street);
@@ -149,16 +149,16 @@ public final class DBNinja {
 				PickupOrder pickupOrder = (PickupOrder) o;
 				stmt = conn.prepareStatement(pickupQuery);
 				stmt.setInt(1, o.getOrderID());
-				stmt.setBoolean(2, pickupOrder.getIsPickedUp());
+				stmt.setBoolean(2, pickupOrder.getIsPickedUp()); 
 				stmt.executeUpdate();
 			}
 
 			conn.commit();
 			rs.close();
 			stmt.close();
-		} catch (SQLException e){
-			conn.rollback();
-		}
+	} catch (SQLException e){
+		conn.rollback();
+	}
 	}
 
 	public static int addPizza(java.util.Date d, int orderID, Pizza p) throws SQLException, IOException
@@ -350,8 +350,6 @@ public final class DBNinja {
 		PreparedStatement stmtDineIn = null;
 		PreparedStatement stmtPickUp = null;
 		PreparedStatement stmt = null;
-		PreparedStatement stmtPizza = null;
-		ResultSet rsPizza = null;
 		ResultSet rsOrder = null;
 		ResultSet rsDelivery = null;
 		ResultSet rsDineIn = null;
@@ -447,49 +445,13 @@ public final class DBNinja {
 
 
 			//populate the pizza list here
-
-
-			String PizzaQuery = "SELECT pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_pizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice FROM pizza WHERE ordertable_OrderID = ?";
-
-			stmtPizza = conn.prepareStatement(PizzaQuery);
-			stmtPizza.setInt(1, OrderID);
-			rsPizza = stmtPizza.executeQuery();
-
 			ArrayList<Pizza> pizzasList = new ArrayList<>();
-			while(rsPizza.next()){
-
-				int pizzaID = rsPizza.getInt("pizza_PizzaID");
-				String pizzaSize = rsPizza.getString("pizza_Size");
-				String pizzaCrustType = rsPizza.getString("pizza_CrustType");
-				String pizzaState = rsPizza.getString("pizza_pizzaState");
-				String pizzaDate = rsPizza.getString("pizza_PizzaDate");
-				double pizzaCustPrice = rsPizza.getDouble("pizza_CustPrice");
-				double pizzaBusPrice = rsPizza.getDouble("pizza_BusPrice");
-
-				Pizza pizza = new Pizza(pizzaID, pizzaSize, pizzaCrustType, OrderID, pizzaState, pizzaDate,
-						pizzaCustPrice, pizzaBusPrice);
-
-
-				//get discounts
-				ArrayList<Discount> discountListPizza = new ArrayList<>();
-				discountListPizza = getDiscounts(pizza);
-				pizza.setDiscounts(discountListPizza);
-
-
-				//get toppings
-				ArrayList<Topping> toppingList = new ArrayList<>();
-				toppingList = getToppingsOnPizza(pizza);
-				pizza.setToppings(toppingList);
-
-
-				pizzasList.add(pizza);
-
-			}
+			pizzasList = getPizzas(order);
+			order.setPizzaList(pizzasList);
+		
 			ordersList.add(order);
 		}
 		stmt.close();
-		stmtPizza.close();
-		rsPizza.close();
 		rsOrder.close();
 		return null;
 	}
@@ -523,7 +485,7 @@ public final class DBNinja {
 		 */
 		connect_to_db();
 		ArrayList<Discount> discountList = new ArrayList<>();
-
+		
 		PreparedStatement stmtDiscount = null;
 		ResultSet rsDiscount = null;
 
@@ -541,7 +503,7 @@ public final class DBNinja {
 			Discount discount = new Discount(discountID, discountName, discountAmount, discountPercent);
 			discountList.add(discount);
 		}
-
+		
 		rsDiscount.close();
 		stmtDiscount.close();
 		conn.close();
@@ -558,31 +520,31 @@ public final class DBNinja {
 		 */
 
 
-		connect_to_db();
+		 connect_to_db();
 
-		Discount discount = null;
-		PreparedStatement stmtDiscount = null;
-		ResultSet rsDiscount = null;
-
-		String discountQuery = "SELECT discount_DiscountID, discount_Amount, discount_IsPercent " +
-				"FROM discount WHERE discount_DiscountName = ?";
-
-		stmtDiscount = conn.prepareStatement(discountQuery);
-		stmtDiscount.setString(1, name);
-		rsDiscount = stmtDiscount.executeQuery();
-
-		while(rsDiscount.next()){
-			int discountID = rsDiscount.getInt("discount_DiscountID");
-			double discountAmount = rsDiscount.getDouble("discount_Amount");
-			Boolean discountPercent = rsDiscount.getBoolean("discount_IsPercent");
-
-			discount = new Discount(discountID, name, discountAmount, discountPercent);
-		}
-
-		rsDiscount.close();
-		stmtDiscount.close();
-		conn.close();
-		return discount;
+		 Discount discount = null;
+		 PreparedStatement stmtDiscount = null;
+		 ResultSet rsDiscount = null;
+ 
+		 String discountQuery = "SELECT discount_DiscountID, discount_Amount, discount_IsPercent " +
+		 "FROM discount WHERE discount_DiscountName = ?";
+ 
+		 stmtDiscount = conn.prepareStatement(discountQuery);
+		 stmtDiscount.setString(1, name);
+		 rsDiscount = stmtDiscount.executeQuery();
+ 
+		 if (rsDiscount.next()){
+			 int discountID = rsDiscount.getInt("discount_DiscountID");
+			 double discountAmount = rsDiscount.getDouble("discount_Amount");
+			 Boolean discountPercent = rsDiscount.getBoolean("discount_IsPercent");
+ 
+			 discount = new Discount(discountID, name, discountAmount, discountPercent);
+		 }
+		 
+		 rsDiscount.close();
+		 stmtDiscount.close();
+		 conn.close();
+		 return discount;
 	}
 
 
@@ -595,7 +557,7 @@ public final class DBNinja {
 		 */
 		connect_to_db();
 		ArrayList<Customer> customerList = new ArrayList<>();
-
+		
 		PreparedStatement stmtCustomer = null;
 		ResultSet rsCustomer = null;
 
@@ -613,7 +575,7 @@ public final class DBNinja {
 			Customer customer = new Customer(custID, custFname, custLName, custPhoneNum);
 			customerList.add(customer);
 		}
-
+		
 		rsCustomer.close();
 		stmtCustomer.close();
 		conn.close();
@@ -633,13 +595,13 @@ public final class DBNinja {
 		String custFirstName = null;
 		String custLastName = null;
 		String customerQuery = "SELECT customer_CustID, customer_FName, customer_LName " +
-				"FROM customer WHERE customer_PhoneNum = ?";
+		 "FROM customer WHERE customer_PhoneNum = ?";
 
 		PreparedStatement stmtCustomer = conn.prepareStatement(customerQuery);
 		stmtCustomer.setString(1, phoneNumber);
 		ResultSet rsCustomer = stmtCustomer.executeQuery();
 
-		while(rsCustomer.next()){
+		if(rsCustomer.next()){
 			custID = rsCustomer.getInt("customer_CustID");
 			custFirstName = rsCustomer.getString("customer_FName");
 			custLastName = rsCustomer.getString("customer_LName");
@@ -723,8 +685,37 @@ public final class DBNinja {
 		 * Don't forget to order the data coming from the database appropriately.
 		 *
 		 */
-		//cassie can do this
-		return null;
+		connect_to_db();
+		ArrayList<Topping> toppingList = new ArrayList<>();
+		
+		PreparedStatement stmtTopping = null;
+		ResultSet rsToppping = null;
+
+		String discountQuery = "SELECT * FROM topping";
+
+		stmtTopping = conn.prepareStatement(discountQuery);
+		rsToppping = stmtTopping.executeQuery();
+
+		while(rsToppping.next()){
+			int toppingID = rsToppping.getInt("topping_TopID");
+			String topName = rsToppping.getString("topping_TopName");
+			double smallAMT = rsToppping.getDouble("topping_SmallAMT");
+			double medAMT = rsToppping.getDouble("topping_MedAMT");
+			double lgAMT = rsToppping.getDouble("topping_LgAMT");
+			double xLAMT = rsToppping.getDouble("topping_XLAMT");
+			double custPrice = rsToppping.getDouble("topping_CustPrice");
+			double busPrice = rsToppping.getDouble("topping_BusPrice");
+			int minINVT = rsToppping.getInt("topping_MinINVT");
+			int curINVT = rsToppping.getInt("topping_CurINVT");
+
+			Topping topping = new Topping(toppingID, topName, smallAMT, medAMT, lgAMT, xLAMT, custPrice, busPrice, minINVT, curINVT);
+			toppingList.add(topping);
+		}
+		
+		rsToppping.close();
+		stmtTopping.close();
+		conn.close();
+		return toppingList;
 	}
 
 	public static Topping findToppingByName(String name) throws SQLException, IOException
@@ -735,8 +726,39 @@ public final class DBNinja {
 		 * If it's not found....then return null
 		 *
 		 */
-		//cassie can do this
-		return null;
+		connect_to_db();
+
+		Topping topping = null;
+		PreparedStatement stmtTopping = null;
+		ResultSet rsToppping = null;
+
+		String discountQuery = "SELECT topping_TopID, topping_SmallAMT, " +
+		"topping_MedAMT, topping_LgAMT, topping_XLAMT, topping_CustPrice " +
+		"topping_BusPrice, topping_MinINVT, topping_CurINVT FROM topping " +
+		"WHERE topping_TopName = ?";
+
+		stmtTopping = conn.prepareStatement(discountQuery);
+		stmtTopping.setString(1, name);
+		rsToppping = stmtTopping.executeQuery();
+
+		if (rsToppping.next()){
+			int toppingID = rsToppping.getInt("topping_TopID");
+			double smallAMT = rsToppping.getDouble("topping_SmallAMT");
+			double medAMT = rsToppping.getDouble("topping_MedAMT");
+			double lgAMT = rsToppping.getDouble("topping_LgAMT");
+			double xLAMT = rsToppping.getDouble("topping_XLAMT");
+			double custPrice = rsToppping.getDouble("topping_CustPrice");
+			double busPrice = rsToppping.getDouble("topping_BusPrice");
+			int minINVT = rsToppping.getInt("topping_MinINVT");
+			int curINVT = rsToppping.getInt("topping_CurINVT");
+
+			topping = new Topping(toppingID, name, smallAMT, medAMT, lgAMT, xLAMT, custPrice, busPrice, minINVT, curINVT);
+		}
+		
+		rsToppping.close();
+		stmtTopping.close();
+		conn.close();
+		return topping;
 	}
 
 	public static ArrayList<Topping> getToppingsOnPizza(Pizza p) throws SQLException, IOException
@@ -794,12 +816,17 @@ public final class DBNinja {
 		 *
 		 * */
 		connect_to_db();
-		PreparedStatement InventoryAdd = null;
-		String inventory = "UPDATE topping" + "SET topping_CurINVT = topping_CurINVT + ?" + "WHERE topping_TopID = ?";
-		InventoryAdd.setDouble(1, quantity);
-		InventoryAdd.setInt(2, toppingID);
-		InventoryAdd = conn.prepareStatement(inventory);
-		InventoryAdd.executeUpdate();
+		PreparedStatement stmtTopping = null;
+
+		String toppingQuery = "UPDATE topping SET topping_CurINVT = ? " +
+		"WHERE topping_TopID = ?";
+
+		stmtTopping = conn.prepareStatement(toppingQuery);
+		stmtTopping.setDouble(1, quantity);
+		stmtTopping.setInt(2, toppingID);
+
+		stmtTopping.executeUpdate();
+		stmtTopping.close();
 
 		conn.close();
 	}
@@ -812,7 +839,50 @@ public final class DBNinja {
 		 *
 		 */
 		//cassie can do this
-		return null;
+			connect_to_db();
+			PreparedStatement stmtPizza = null;
+			ResultSet rsPizza = null;
+			String PizzaQuery = "SELECT pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_pizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice FROM pizza WHERE ordertable_OrderID = ?";
+
+			stmtPizza = conn.prepareStatement(PizzaQuery);
+			stmtPizza.setInt(1, o.getOrderID());
+			rsPizza = stmtPizza.executeQuery();
+
+			ArrayList<Pizza> pizzasList = new ArrayList<>();
+			while(rsPizza.next()){
+
+				int pizzaID = rsPizza.getInt("pizza_PizzaID");
+				String pizzaSize = rsPizza.getString("pizza_Size");
+				String pizzaCrustType = rsPizza.getString("pizza_CrustType");
+				String pizzaState = rsPizza.getString("pizza_pizzaState");
+				String pizzaDate = rsPizza.getString("pizza_PizzaDate");
+				double pizzaCustPrice = rsPizza.getDouble("pizza_CustPrice");
+				double pizzaBusPrice = rsPizza.getDouble("pizza_BusPrice");
+
+				Pizza pizza = new Pizza(pizzaID, pizzaSize, pizzaCrustType, o.getOrderID(), pizzaState, pizzaDate,
+				pizzaCustPrice, pizzaBusPrice);
+
+
+				//get discounts
+				ArrayList<Discount> discountListPizza = new ArrayList<>();
+				discountListPizza = getDiscounts(pizza);
+				pizza.setDiscounts(discountListPizza);
+
+
+				//get toppings
+				ArrayList<Topping> toppingList = new ArrayList<>();
+				toppingList = getToppingsOnPizza(pizza);
+				pizza.setToppings(toppingList);
+				
+
+				pizzasList.add(pizza);
+
+			}
+		
+		rsPizza.close();
+		stmtPizza.close();
+		conn.close();
+		return pizzasList;
 	}
 
 	public static ArrayList<Discount> getDiscounts(Order o) throws SQLException, IOException
@@ -868,11 +938,11 @@ public final class DBNinja {
 		ArrayList<Discount> discountList = new ArrayList<>();
 
 		String discountQuery = "SELECT " +
-				"pizza_discount.discount_DiscountID, discount.discount_DiscountName, " +
-				"discount.discount_Amount, discount.discount_IsPercent " +
-				"FROM pizza_discount " +
-				"JOIN discount ON pizza_discount.discount_DiscountID = discount.discount_DiscountID " +
-				"WHERE pizza_discount.pizza_PizzaID = ?";
+		"pizza_discount.discount_DiscountID, discount.discount_DiscountName, " +
+		"discount.discount_Amount, discount.discount_IsPercent " +
+		"FROM pizza_discount " +
+		"JOIN discount ON pizza_discount.discount_DiscountID = discount.discount_DiscountID " +
+		"WHERE pizza_discount.pizza_PizzaID = ?";
 
 		stmtDiscount = conn.prepareStatement(discountQuery);
 		stmtDiscount.setInt(1, p.getPizzaID());
@@ -902,7 +972,28 @@ public final class DBNinja {
 		 *
 		 */
 		//cassie can do this
-		return 0.0;
+		connect_to_db();
+
+		double customerPrice = 0.0;
+		PreparedStatement stmtCustPrice = null;
+		ResultSet rsCustPrice = null;
+
+		String discountQuery = "SELECT baseprice_CustPrice FROM baseprice " +
+		"WHERE baseprice_Size = ? AND baseprice_CrustType = ?";
+
+		stmtCustPrice = conn.prepareStatement(discountQuery);
+		stmtCustPrice.setString(1, size);
+		stmtCustPrice.setString(2, crust);
+		rsCustPrice = stmtCustPrice.executeQuery();
+
+		if (rsCustPrice.next()){
+			customerPrice = rsCustPrice.getDouble("baseprice_CustPrice");
+		}
+		
+		rsCustPrice.close();
+		stmtCustPrice.close();
+		conn.close();
+		return customerPrice;
 	}
 
 	public static double getBaseBusPrice(String size, String crust) throws SQLException, IOException
@@ -913,7 +1004,28 @@ public final class DBNinja {
 		 */
 
 		//cassie can do this
-		return 0.0;
+		connect_to_db();
+
+		double businessPrice = 0.0;
+		PreparedStatement stmtBusPrice = null;
+		ResultSet rsBusPrice = null;
+
+		String discountQuery = "SELECT baseprice_BusPrice FROM baseprice " +
+		"WHERE baseprice_Size = ? AND baseprice_CrustType = ?";
+
+		stmtBusPrice = conn.prepareStatement(discountQuery);
+		stmtBusPrice.setString(1, size);
+		stmtBusPrice.setString(2, crust);
+		rsBusPrice = stmtBusPrice.executeQuery();
+
+		if (rsBusPrice.next()){
+			businessPrice = rsBusPrice.getDouble("baseprice_BusPrice");
+		}
+		
+		rsBusPrice.close();
+		stmtBusPrice.close();
+		conn.close();
+		return businessPrice;
 	}
 
 
