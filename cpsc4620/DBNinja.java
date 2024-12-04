@@ -815,6 +815,19 @@ public final class DBNinja {
 		 * Updates the quantity of the topping in the database by the amount specified.
 		 * 
 		 * */
+		PreparedStatement stmtTopping = null;
+
+		String toppingQuery = "UPDATE topping SET topping_CurINVT = ? " +
+		"WHERE topping_TopID = ?";
+
+		stmtTopping = conn.prepareStatement(toppingQuery);
+		stmtTopping.setDouble(1, quantity);
+		stmtTopping.setInt(2, toppingID);
+
+		stmtTopping.executeUpdate();
+		stmtTopping.close();
+		conn.close();
+
 	}
 	
 	
