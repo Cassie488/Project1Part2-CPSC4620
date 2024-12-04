@@ -27,6 +27,9 @@ public class DeliveryOrder extends Order
 		Address = address;
 	}
 
+	public boolean getIsDelivered() {
+		return isDelivered;
+	}
 	@Override
 	public String toString() {
 		return super.toString() + " | Delivered to: " + Address + " | Order Delivered: " + ((isDelivered)?"Yes":"No");
