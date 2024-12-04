@@ -956,8 +956,28 @@ public final class DBNinja {
 		 * Query the database fro the base customer price for that size and crust pizza.
 		 * 
 		*/
-		//cassie can do this
-		return 0.0;
+		connect_to_db();
+
+		double customerPrice = 0.0;
+		PreparedStatement stmtCustPrice = null;
+		ResultSet rsCustPrice = null;
+
+		String discountQuery = "SELECT pizza_CustPrice FROM pizza " +
+		"WHERE pizza_Size = ? AND pizza_CrustType = ?";
+
+		stmtCustPrice = conn.prepareStatement(discountQuery);
+		stmtCustPrice.setString(1, size);
+		stmtCustPrice.setString(2, crust);
+		rsCustPrice = stmtCustPrice.executeQuery();
+
+		if (rsCustPrice.next()){
+			customerPrice = rsCustPrice.getDouble("pizza_CustPrice");
+		}
+		
+		rsCustPrice.close();
+		stmtCustPrice.close();
+		conn.close();
+		return customerPrice;
 	}
 
 	public static double getBaseBusPrice(String size, String crust) throws SQLException, IOException 
