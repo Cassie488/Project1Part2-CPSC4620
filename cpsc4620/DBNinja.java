@@ -571,7 +571,7 @@ public final class DBNinja {
 		 stmtDiscount.setString(1, name);
 		 rsDiscount = stmtDiscount.executeQuery();
  
-		 while(rsDiscount.next()){
+		 if (rsDiscount.next()){
 			 int discountID = rsDiscount.getInt("discount_DiscountID");
 			 double discountAmount = rsDiscount.getDouble("discount_Amount");
 			 Boolean discountPercent = rsDiscount.getBoolean("discount_IsPercent");
@@ -639,7 +639,7 @@ public final class DBNinja {
 		stmtCustomer.setString(1, phoneNumber);
 		ResultSet rsCustomer = stmtCustomer.executeQuery();
 
-		while(rsCustomer.next()){
+		if(rsCustomer.next()){
 			custID = rsCustomer.getInt("customer_CustID");
 			custFirstName = rsCustomer.getString("customer_FName");
 			custLastName = rsCustomer.getString("customer_LName");
@@ -723,8 +723,37 @@ public final class DBNinja {
 		 * Don't forget to order the data coming from the database appropriately.
 		 * 
 		 */
-		cassie can do this
-		return null;
+		connect_to_db();
+		ArrayList<Topping> toppingList = new ArrayList<>();
+		
+		PreparedStatement stmtTopping = null;
+		ResultSet rsToppping = null;
+
+		String discountQuery = "SELECT * FROM topping";
+
+		stmtTopping = conn.prepareStatement(discountQuery);
+		rsToppping = stmtTopping.executeQuery();
+
+		while(rsToppping.next()){
+			int toppingID = rsToppping.getInt("topping_TopID");
+			String topName = rsToppping.getString("topping_TopName");
+			double smallAMT = rsToppping.getDouble("topping_SmallAMT");
+			double medAMT = rsToppping.getDouble("topping_MedAMT");
+			double lgAMT = rsToppping.getDouble("topping_LgAMT");
+			double xLAMT = rsToppping.getDouble("topping_XLAMT");
+			double custPrice = rsToppping.getDouble("topping_CustPrice");
+			double busPrice = rsToppping.getDouble("topping_BusPrice");
+			int minINVT = rsToppping.getInt("topping_MinINVT");
+			int curINVT = rsToppping.getInt("topping_CurINVT");
+
+			Topping topping = new Topping(toppingID, topName, smallAMT, medAMT, lgAMT, xLAMT, custPrice, busPrice, minINVT, curINVT);
+			toppingList.add(topping);
+		}
+		
+		rsToppping.close();
+		stmtTopping.close();
+		conn.close();
+		return toppingList;
 	}
 
 	public static Topping findToppingByName(String name) throws SQLException, IOException 
@@ -735,8 +764,39 @@ public final class DBNinja {
 		 * If it's not found....then return null
 		 *  
 		 */
-		cassie can do this
-		 return null;
+		connect_to_db();
+
+		Topping topping = null;
+		PreparedStatement stmtTopping = null;
+		ResultSet rsToppping = null;
+
+		String discountQuery = "SELECT topping_TopID, topping_SmallAMT, " +
+		"topping_MedAMT, topping_LgAMT, topping_XLAMT, topping_CustPrice " +
+		"topping_BusPrice, topping_MinINVT, topping_CurINVT FROM topping " +
+		"WHERE topping_TopName = ?";
+
+		stmtTopping = conn.prepareStatement(discountQuery);
+		stmtTopping.setString(1, name);
+		rsToppping = stmtTopping.executeQuery();
+
+		if (rsToppping.next()){
+			int toppingID = rsToppping.getInt("topping_TopID");
+			double smallAMT = rsToppping.getDouble("topping_SmallAMT");
+			double medAMT = rsToppping.getDouble("topping_MedAMT");
+			double lgAMT = rsToppping.getDouble("topping_LgAMT");
+			double xLAMT = rsToppping.getDouble("topping_XLAMT");
+			double custPrice = rsToppping.getDouble("topping_CustPrice");
+			double busPrice = rsToppping.getDouble("topping_BusPrice");
+			int minINVT = rsToppping.getInt("topping_MinINVT");
+			int curINVT = rsToppping.getInt("topping_CurINVT");
+
+			topping = new Topping(toppingID, name, smallAMT, medAMT, lgAMT, xLAMT, custPrice, busPrice, minINVT, curINVT);
+		}
+		
+		rsToppping.close();
+		stmtTopping.close();
+		conn.close();
+		return topping;
 	}
 
 	public static ArrayList<Topping> getToppingsOnPizza(Pizza p) throws SQLException, IOException 
