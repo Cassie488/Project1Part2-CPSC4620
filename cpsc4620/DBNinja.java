@@ -111,8 +111,9 @@ public final class DBNinja {
 			}
 
 			stmt.setString(3, o.getOrderType());
-			//Date date_temp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(o.getDate());
-			stmt.setDate(4, java.sql.Date.valueOf(o.getDate()));
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+			Date date_temp = formatter.parse(o.getDate());
+			stmt.setDate(4, new java.sql.Date(date_temp.getTime()));
 			stmt.setDouble(5, o.getCustPrice());
 			stmt.setDouble(6, o.getBusPrice());
 			stmt.setBoolean(7, o.getIsComplete());
