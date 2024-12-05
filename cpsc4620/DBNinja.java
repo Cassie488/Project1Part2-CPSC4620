@@ -459,7 +459,7 @@ public final class DBNinja {
 					boolean IsDelivered = rsDelivery.getBoolean("delivery_IsDelivered");
 
 
-					String address = houseNum + " " + street + ", " + city + ", " + state + " " + zipCode;
+					String address = String.format("%-9d%-17s%-17s%-9s%-6d", houseNum, street, city, state, zipCode);
 
 					Deliveryorder = new DeliveryOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, isComplete, address, IsDelivered);
 					ArrayList<Discount> discountList = new ArrayList<>();
