@@ -93,7 +93,6 @@ public final class DBNinja {
 		PreparedStatement stmt = null;
 
 		try {
-			conn.setAutoCommit(false); // Begin transaction
 
 			// Insert into Order table
 			String orderQuery = "INSERT INTO 'Order' "
@@ -193,8 +192,6 @@ public final class DBNinja {
 
 				stmt.executeUpdate();
 			}
-
-			conn.commit();
 			stmt.close();
 		} catch (SQLException e){
 			conn.rollback();
@@ -291,11 +288,7 @@ public final class DBNinja {
 				stmtDiscount.executeUpdate();
 			}
 
-			pizzaStmt.close();
-			rs.close();
-			stmtTopping.close();
-			stmtDiscount.close();
-			stmtInventoryUpdate.close();
+
 			conn.close();
 		}
 		return PizzaID;
@@ -330,9 +323,9 @@ public final class DBNinja {
 				customerId = rs.getInt(1); // Get the generated customer ID
 				c.setCustID(customerId);  // Update the Customer object with the ID
 			}
-			rs.close();
+
 			conn.close();
-			stmt.close();
+
 		}
 
 		return -1;
@@ -381,15 +374,7 @@ public final class DBNinja {
 				pickupStmt.setInt(2, OrderID);
 				pickupStmt.executeUpdate();
 			}
-			conn.commit();
-			if(newState.equals(order_state.PREPARED)){
-				PizzaStmt.close();
-				orderStmt.close();
-			} else if (newState.equals(order_state.DELIVERED)){
-				DeliveryStmt.close();
-			} else if (newState.equals(order_state.PICKEDUP)) {
-				pickupStmt.close();
-			}
+
 			conn.close();
 		} catch (SQLException e){
 			conn.rollback();
@@ -472,8 +457,6 @@ public final class DBNinja {
 
 					order = new DeliveryOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, isComplete, address, IsDelivered);
 				}
-				rsDelivery.close();
-				stmtDelivery.close();
 
 
 			} else if(OrderType.equals("DineIn")){
@@ -488,8 +471,7 @@ public final class DBNinja {
 					tableNum = rsDineIn.getInt("dinein_TableNum");
 				}
 				order = new DineinOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, isComplete, tableNum);
-				rsDineIn.close();
-				stmtDineIn.close();
+
 
 			} else if(OrderType.equals("PickUp")){
 
@@ -504,8 +486,7 @@ public final class DBNinja {
 				}
 				order = new PickupOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, ispickedUp, isComplete);
 
-				rsPickUp.close();
-				stmtPickUp.close();
+
 			}
 
 			//populate the discount list
@@ -522,8 +503,8 @@ public final class DBNinja {
 
 			ordersList.add(order);
 		}
-		stmt.close();
-		rsOrder.close();
+
+		conn.close();
 		return null;
 	}
 
@@ -557,8 +538,7 @@ public final class DBNinja {
             latest = new Order(orderID, customerID, orderType, date, custPrice, busPrice, isComplete);
             // You can also populate the pizza list, discounts, etc., if needed
         }
-		rsLatest.close();
-		stmtLatestOrder.close();
+
 		conn.close();
 		return latest;
 	}
@@ -597,8 +577,7 @@ public final class DBNinja {
 
 			dateOrder.add(order);
     	}
-		rsDatedOrders.close();
-		stmtDatedOrders.close();
+
 		conn.close();
 
 		return dateOrder;
@@ -632,8 +611,6 @@ public final class DBNinja {
 			discountList.add(discount);
 		}
 
-		rsDiscount.close();
-		stmtDiscount.close();
 		conn.close();
 		return discountList;
 	}
@@ -669,8 +646,6 @@ public final class DBNinja {
 			discount = new Discount(discountID, name, discountAmount, discountPercent);
 		}
 
-		rsDiscount.close();
-		stmtDiscount.close();
 		conn.close();
 		return discount;
 	}
@@ -704,8 +679,6 @@ public final class DBNinja {
 			customerList.add(customer);
 		}
 
-		rsCustomer.close();
-		stmtCustomer.close();
 		conn.close();
 		return customerList;
 	}
@@ -741,8 +714,6 @@ public final class DBNinja {
 		Customer customer = new Customer(custID, custFirstName, custLastName, phoneNumber);
 
 		conn.close();
-		stmtCustomer.close();
-		rsCustomer.close();
 		return customer;
 	}
 
@@ -843,8 +814,6 @@ public final class DBNinja {
 			toppingList.add(topping);
 		}
 
-		rsToppping.close();
-		stmtTopping.close();
 		conn.close();
 		return toppingList;
 	}
@@ -884,8 +853,6 @@ public final class DBNinja {
 			topping = new Topping(toppingID, name, smallAMT, medAMT, lgAMT, xLAMT, custPrice, busPrice, minINVT, curINVT);
 		}
 
-		rsToppping.close();
-		stmtTopping.close();
 		conn.close();
 		return topping;
 	}
@@ -932,8 +899,7 @@ public final class DBNinja {
 			toppingsList.add(topping);
 
 		}
-		stmtTopping.close();
-		rsTopping.close();
+
 		conn.close();
 		return toppingsList;
 	}
@@ -956,7 +922,6 @@ public final class DBNinja {
 		stmtTopping.setInt(2, toppingID);
 
 		stmtTopping.executeUpdate();
-		stmtTopping.close();
 
 		conn.close();
 	}
@@ -1009,8 +974,6 @@ public final class DBNinja {
 
 		}
 
-		rsPizza.close();
-		stmtPizza.close();
 		conn.close();
 		return pizzasList;
 	}
@@ -1049,8 +1012,7 @@ public final class DBNinja {
 			discountList.add(discount);
 
 		}
-		stmtDiscount.close();
-		rsDiscount.close();
+
 		conn.close();
 		return discountList;
 	}
@@ -1089,8 +1051,7 @@ public final class DBNinja {
 			discountList.add(discount);
 
 		}
-		stmtDiscount.close();
-		rsDiscount.close();
+
 		conn.close();
 		return discountList;
 	}
@@ -1120,8 +1081,6 @@ public final class DBNinja {
 			customerPrice = rsCustPrice.getDouble("baseprice_CustPrice");
 		}
 
-		rsCustPrice.close();
-		stmtCustPrice.close();
 		conn.close();
 		return customerPrice;
 	}
@@ -1152,8 +1111,6 @@ public final class DBNinja {
 			businessPrice = rsBusPrice.getDouble("baseprice_BusPrice");
 		}
 
-		rsBusPrice.close();
-		stmtBusPrice.close();
 		conn.close();
 		return businessPrice;
 	}
