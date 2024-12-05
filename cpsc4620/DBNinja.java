@@ -412,7 +412,6 @@ public final class DBNinja {
 		ResultSet rsPickUp = null;
 		int tableNum = -1;
 		boolean ispickedUp = true;
-		Order order = null;
 
 		String queryOrder = null;
 		if(status == 1){
@@ -455,7 +454,20 @@ public final class DBNinja {
 
 					String address = houseNum + " " + street + ", " + city + ", " + state + " " + zipCode;
 
-					order = new DeliveryOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, isComplete, address, IsDelivered);
+					DeliveryOrder order = new DeliveryOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, isComplete, address, IsDelivered);
+					ArrayList<Discount> discountList = new ArrayList<>();
+					discountList = getDiscounts(order);
+					order.setDiscountList(discountList);
+
+
+
+					//populate the pizza list here
+					ArrayList<Pizza> pizzasList = new ArrayList<>();
+					pizzasList = getPizzas(order);
+					order.setPizzaList(pizzasList);
+
+					ordersList.add(order);
+
 				}
 
 
@@ -470,8 +482,20 @@ public final class DBNinja {
 				if(rsDineIn.next()){
 					tableNum = rsDineIn.getInt("dinein_TableNum");
 				}
-				order = new DineinOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, isComplete, tableNum);
+				DineinOrder order = new DineinOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, isComplete, tableNum);
 
+				ArrayList<Discount> discountList = new ArrayList<>();
+				discountList = getDiscounts(order);
+				order.setDiscountList(discountList);
+
+
+
+				//populate the pizza list here
+				ArrayList<Pizza> pizzasList = new ArrayList<>();
+				pizzasList = getPizzas(order);
+				order.setPizzaList(pizzasList);
+
+				ordersList.add(order);
 
 			} else if(OrderType.equals("PickUp")){
 
@@ -484,24 +508,24 @@ public final class DBNinja {
 				if(rsPickUp.next()){
 					ispickedUp = rsPickUp.getBoolean("pickup_IsPickedUP");
 				}
-				order = new PickupOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, ispickedUp, isComplete);
+				PickupOrder order = new PickupOrder(OrderID, CustID, OrderString, CustPrice, BusPrice, ispickedUp, isComplete);
 
+				ArrayList<Discount> discountList = new ArrayList<>();
+				discountList = getDiscounts(order);
+				order.setDiscountList(discountList);
+
+
+
+				//populate the pizza list here
+				ArrayList<Pizza> pizzasList = new ArrayList<>();
+				pizzasList = getPizzas(order);
+				order.setPizzaList(pizzasList);
+
+				ordersList.add(order);
 
 			}
 
 			//populate the discount list
-			ArrayList<Discount> discountList = new ArrayList<>();
-			discountList = getDiscounts(order);
-			order.setDiscountList(discountList);
-
-
-
-			//populate the pizza list here
-			ArrayList<Pizza> pizzasList = new ArrayList<>();
-			pizzasList = getPizzas(order);
-			order.setPizzaList(pizzasList);
-
-			ordersList.add(order);
 		}
 
 		conn.close();
