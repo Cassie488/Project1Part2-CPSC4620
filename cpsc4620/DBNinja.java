@@ -99,7 +99,7 @@ public final class DBNinja {
 			String orderQuery = "INSERT INTO 'Order' "
 			+ "(ordertable_OrderID, customer_CustID, ordertable_OrderType, " +
 			"ordertable_OrderDateTime, ordertable_CustPrice, " +
-			"ordertable_BusPrice, ordertable_IsComplete) VALUES (?, ?, ?, ?, ?, ?)";
+			"ordertable_BusPrice, ordertable_isComplete) VALUES (?, ?, ?, ?, ?, ?)";
 			stmt = conn.prepareStatement(orderQuery, Statement.RETURN_GENERATED_KEYS);
 			stmt.setInt(1, o.getOrderID());
 
@@ -535,19 +535,30 @@ public final class DBNinja {
 		 * NOTE...there will ALWAYS be a "last order"!
 		 */
 		connect_to_db();
-
 		Order latest = null;
-		PreparedStatement stmtLatest = null;
-		ResultSet rsLatest = null;
+		
+		String latestQuery = "SELECT * FROM Order ORDER BY ordertable_OrderDateTime DESC LIMIT 1";
+        
+        PreparedStatement stmtLatestOrder = conn.prepareStatement(latestQuery);
+        ResultSet rsLatest = stmtLatestOrder.executeQuery();
 
-		//need to figure out how to determine order added to database
-		// is it by time or date?
-		String latestQuery = "";
+        // Check if a result is returned
+        if (rsLatest.next()) {
+            int orderID = rsLatest.getInt("ordertable_OrderID");
+            int customerID = rsLatest.getInt("customer_CustID");
+            String orderType = rsLatest.getString("ordertable_OrderType");
+            java.sql.Date orderDate = rsLatest.getDate("ordertable_OrderDateTime");
+			String date = orderDate.toString();
+            double custPrice = rsLatest.getDouble("ordertable_CustPrice");
+            double busPrice = rsLatest.getDouble("ordertable_BusPrice");
+            boolean isComplete = rsLatest.getBoolean("ordertable_isComplete");
 
-		stmtLatest = conn.prepareStatement(latestQuery);
-		rsLatest = stmtLatest.executeQuery();
-
-
+            // Create an Order object from the result set data
+            latest = new Order(orderID, customerID, orderType, date, custPrice, busPrice, isComplete);
+            // You can also populate the pizza list, discounts, etc., if needed
+        }
+		rsLatest.close();
+		stmtLatestOrder.close();
 		conn.close();
 		return latest;
 	}
@@ -559,27 +570,38 @@ public final class DBNinja {
 		 * and return a list of those orders.
 		 *
 		 */
-		connect_to_db();
-
 		ArrayList<Order> dateOrder = new ArrayList<>();
-		PreparedStatement stmtDated = null;
-		ResultSet rsDated = null;
+    	PreparedStatement stmtDatedOrders = null;
+    	ResultSet rsDatedOrders = null;
 
-		//need to figure out how to determine order added to database
-		// is it by time or date?
-		String datedQuery = "";
+    
+        // Query to get all orders placed on the specific date
+        String datedQuery = "SELECT * FROM Order WHERE DATE(ordertable_OrderDateTime) = ?";
+        
+        stmtDatedOrders = conn.prepareStatement(datedQuery);
+        stmtDatedOrders.setString(1, date);  // Set the date parameter for the query
+        rsDatedOrders = stmtDatedOrders.executeQuery();
 
-		stmtDated = conn.prepareStatement(datedQuery);
-		rsDated = stmtDated.executeQuery();
+        // Loop through the results and add each order to the ArrayList
+        while (rsDatedOrders.next()) {
+            int orderID = rsDatedOrders.getInt("ordertable_OrderID");
+            int customerID = rsDatedOrders.getInt("customer_CustID");
+            String orderType = rsDatedOrders.getString("ordertable_OrderType");
+            java.sql.Date orderDate = rsDatedOrders.getDate("ordertable_OrderDateTime");
+			String orderDateString = orderDate.toString();
+            double custPrice = rsDatedOrders.getDouble("ordertable_CustPrice");
+            double busPrice = rsDatedOrders.getDouble("ordertable_BusPrice");
+            boolean isComplete = rsDatedOrders.getBoolean("ordertable_isComplete");
 
+			Order order = new Order(orderID, customerID, orderType, orderDateString, custPrice, busPrice, isComplete);
 
+			dateOrder.add(order);
+    	}
+		rsDatedOrders.close();
+		stmtDatedOrders.close();
 		conn.close();
-		if(!dateOrder.isEmpty()){
-			return dateOrder;
-		}
-		else {
-			return null;
-		}
+
+		return dateOrder;
 	}
 
 	public static ArrayList<Discount> getDiscountList() throws SQLException, IOException
