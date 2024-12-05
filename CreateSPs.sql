@@ -51,6 +51,7 @@ CREATE FUNCTION CalcOrderPrice(orderID INT, discount INT) RETURNS int DETERMINIS
 BEGIN
 	DECLARE totalPrice INT;
 	DECLARE totalPriceWithoutDiscount INT;
+	DECLARE discountPercentage INT;
 	SET totalPriceWithoutDiscount = (
 		SELECT
 			SUM(ordertable_CustPrice) 
@@ -86,6 +87,7 @@ CREATE FUNCTION CalcPizzaPrice(pizzaID INT) RETURNS int DETERMINISTIC
 BEGIN
 	DECLARE totalPrice INT;
 	DECLARE totalToppings INT;
+	DECLARE discountPercentage INT;
 	DECLARE totalPizza INT;
 	DECLARE tempTopping INT;
 	DECLARE discount INT;
