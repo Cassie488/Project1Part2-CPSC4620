@@ -95,7 +95,7 @@ public final class DBNinja {
 		try {
 
 			// Insert into Order table
-			String orderQuery = "INSERT INTO 'Order' "
+			String orderQuery = "INSERT INTO ordertable "
 					+ "(ordertable_OrderID, customer_CustID, ordertable_OrderType, " +
 					"ordertable_OrderDateTime, ordertable_CustPrice, " +
 					"ordertable_BusPrice, ordertable_isComplete) VALUES (?, ?, ?, ?, ?, ?)";
@@ -125,7 +125,7 @@ public final class DBNinja {
 			}
 
 			for (Discount discount : o.getDiscountList()) {
-				String discountQuery = "INSERT INTO Order_Discount (OrderID, DiscountID) VALUES (?, ?)";
+				String discountQuery = "INSERT INTO order_discount (ordertable_OrderID, discount_DiscountID) VALUES (?, ?)";
 				stmt = conn.prepareStatement(discountQuery);
 				stmt.setInt(1, o.getOrderID());
 				stmt.setInt(2, discount.getDiscountID());
@@ -133,8 +133,9 @@ public final class DBNinja {
 			}
 
 			//FIX THE COMPARISIONS CASSIE TY
-			if ("Delivery".equals(o.getOrderType())) {
-				String deliveryQuery = "INSERT INTO Delivery (OrderID, HouseNum, Street, City, State, Zip, IsDelivered) VALUES (?, ?, ?, ?, ?, ?, ?)";
+			if (o.getOrderType().equals(delivery)) {
+				connect_to_db();
+				String deliveryQuery = "INSERT INTO delivery (ordertable_OrderID, delivery_HouseNum, delivery_Street, delivery_City, delivery_State, delivery_Zip, delivery_IsDelivered) VALUES (?, ?, ?, ?, ?, ?, ?)";
 				DeliveryOrder deliveryOrder = (DeliveryOrder) o;
 				stmt = conn.prepareStatement(deliveryQuery);
 
@@ -170,9 +171,10 @@ public final class DBNinja {
 				stmt.setBoolean(7, deliveryOrder.getIsDelivered());
 
 				stmt.executeUpdate();
-			} else if ("DineIn".equals(o.getOrderType())) {
-
-				String dineInQuery = "INSERT INTO DineIn (OrderID, TableNumber) VALUES (?, ?)";
+				conn.close();
+			} else if (o.getOrderType().equals(dine_in)) {
+				connect_to_db();
+				String dineInQuery = "INSERT INTO dinein (ordertable_OrderID, dinein_TableNum) VALUES (?, ?)";
 				DineinOrder dineinOrder = (DineinOrder) o;
 				stmt = conn.prepareStatement(dineInQuery);
 
@@ -180,10 +182,10 @@ public final class DBNinja {
 				stmt.setInt(2, dineinOrder.getTableNum());
 
 				stmt.executeUpdate();
-
-			} else if ("Pickup".equals(o.getOrderType())) {
-
-				String pickupQuery = "INSERT INTO Pickup (OrderID, IsPickedUp) VALUES (?, ?)";
+				conn.close();
+			} else if (o.getOrderType().equals(pickup)) {
+				connect_to_db();
+				String pickupQuery = "INSERT INTO pickup (ordertable_OrderID, pickup_IsPickedUp) VALUES (?, ?)";
 				PickupOrder pickupOrder = (PickupOrder) o;
 				stmt = conn.prepareStatement(pickupQuery);
 
@@ -191,6 +193,7 @@ public final class DBNinja {
 				stmt.setBoolean(2, pickupOrder.getIsPickedUp());
 
 				stmt.executeUpdate();
+				conn.close();
 			}
 			stmt.close();
 		} catch (SQLException e){
@@ -221,7 +224,7 @@ public final class DBNinja {
 		PreparedStatement stmtDiscount = null;
 		PreparedStatement stmtInventoryUpdate = null;
 
-		String pizzaInsertQuery = "INSERT INTO Pizza (pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_PizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice, pizza_OrderID) "
+		String pizzaInsertQuery = "INSERT INTO pizza (pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_PizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice, ordertable_OrderID) "
 				+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 
@@ -244,7 +247,7 @@ public final class DBNinja {
 
 			// Add toppings
 			for (Topping topping : p.getToppings()) {
-				String sql = "INSERT INTO pizza_topping (PizzaID, ToppingID, pizza_topping_IsDouble) VALUES (?, ?, ?)";
+				String sql = "INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble) VALUES (?, ?, ?)";
 
 				stmtTopping = conn.prepareStatement(sql);
 				stmtTopping.setInt(1, PizzaID);
@@ -280,7 +283,7 @@ public final class DBNinja {
 			}
 
 			for (Discount discount : p.getDiscounts()) {
-				String sql = "INSERT INTO pizza_discount (PizzaID, DiscountID) VALUES (?, ?)";
+				String sql = "INSERT INTO pizza_discount (pizza_PizzaID, discount_DiscountID) VALUES (?, ?)";
 
 				stmtDiscount = conn.prepareStatement(sql);
 				stmtDiscount.setInt(1, PizzaID);
@@ -418,11 +421,11 @@ public final class DBNinja {
 
 		String queryOrder = null;
 		if(status == 1){
-			queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = 0";
+			queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = 0 ORDER BY ordertable_OrderDateTime ASC";
 		} else if (status == 2){
-			queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = 1";
+			queryOrder = "SELECT * FROM ordertable WHERE ordertable_isComplete = 1 ORDER BY ordertable_OrderDateTime ASC";
 		} else if (status == 3){
-			queryOrder = "SELECT * FROM ordertable";
+			queryOrder = "SELECT * FROM ordertable ORDER BY ordertable_OrderDateTime ASC";
 		}
 
 		stmt = conn.prepareStatement(queryOrder);
@@ -440,7 +443,6 @@ public final class DBNinja {
 
 
 			if(OrderType.equals(delivery)){
-
 				connect_to_db();
 				String queryOrderDelivery = "SELECT delivery_HouseNum, delivery_Street, delivery_City, delivery_State, delivery_Zip, delivery_IsDelivered FROM delivery WHERE ordertable_OrderID = ?";
 
@@ -474,7 +476,6 @@ public final class DBNinja {
 					conn.close();
 				}
 			} else if(OrderType.equals(dine_in)){
-
 				connect_to_db();
 				String queryOrderDineIn = "SELECT dinein_TableNum FROM dinein WHERE ordertable_OrderID = ?";
 
@@ -501,7 +502,6 @@ public final class DBNinja {
 				ordersList.add(DineInorder);
 				conn.close();
 			} else if(OrderType.equals(pickup)){
-
 				connect_to_db();
 				String queryOrderPickup = "SELECT pickup_IsPickedUp FROM pickup WHERE ordertable_OrderID = ?";
 
@@ -545,7 +545,7 @@ public final class DBNinja {
 		connect_to_db();
 		Order latest = null;
 
-		String latestQuery = "SELECT * FROM Order ORDER BY ordertable_OrderDateTime DESC LIMIT 1";
+		String latestQuery = "SELECT * FROM order ORDER BY ordertable_OrderDateTime DESC LIMIT 1";
 
 		PreparedStatement stmtLatestOrder = conn.prepareStatement(latestQuery);
 		ResultSet rsLatest = stmtLatestOrder.executeQuery();
@@ -583,7 +583,7 @@ public final class DBNinja {
 
 
 		// Query to get all orders placed on the specific date
-		String datedQuery = "SELECT * FROM Order WHERE DATE(ordertable_OrderDateTime) = ?";
+		String datedQuery = "SELECT * FROM order WHERE DATE(ordertable_OrderDateTime) = ?";
 
 		stmtDatedOrders = conn.prepareStatement(datedQuery);
 		stmtDatedOrders.setString(1, date);  // Set the date parameter for the query
