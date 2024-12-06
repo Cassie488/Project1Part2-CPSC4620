@@ -96,7 +96,6 @@ public final class DBNinja {
 
 		try {
 
-
 			// Insert into Order table
 			String orderQuery = "INSERT INTO ordertable "
 					+ "(ordertable_OrderID, customer_CustID, ordertable_OrderType, " +
@@ -123,6 +122,8 @@ public final class DBNinja {
 			stmt.setBoolean(7, o.getIsComplete());
 			stmt.executeUpdate();
 			conn.commit();
+			conn.setAutoCommit(true);
+			conn.close();
 
 			for (Pizza pizza : o.getPizzaList()) {
 				String pizzaDate = o.getDate();
@@ -140,7 +141,6 @@ public final class DBNinja {
 				stmt.executeUpdate();
 				conn.commit();
 				conn.setAutoCommit(true);
-				conn.close();
 			}
 
 			//FIX THE COMPARISIONS CASSIE TY
@@ -185,7 +185,6 @@ public final class DBNinja {
 				stmt.executeUpdate();
 				conn.commit();
 				conn.setAutoCommit(true);
-				conn.close();
 			} else if (o.getOrderType().equals(dine_in)) {
 				connect_to_db();
 				conn.setAutoCommit(false);
@@ -199,7 +198,6 @@ public final class DBNinja {
 				stmt.executeUpdate();
 				conn.commit();
 				conn.setAutoCommit(true);
-				conn.close();
 			} else if (o.getOrderType().equals(pickup)) {
 				connect_to_db();
 				conn.setAutoCommit(false);
@@ -213,7 +211,6 @@ public final class DBNinja {
 				stmt.executeUpdate();
 				conn.commit();
 				conn.setAutoCommit(true);
-				conn.close();
 			}
 
 			stmt.close();
@@ -222,8 +219,7 @@ public final class DBNinja {
 		} catch (ParseException e) {
 			throw new RuntimeException(e);
 		}
-		conn.setAutoCommit(true);
-		conn.close();
+
 	}
 
 	public static int addPizza(java.util.Date d, int orderID, Pizza p) throws SQLException, IOException
@@ -620,10 +616,10 @@ public final class DBNinja {
 		 * and return a list of those orders.
 		 *
 		 */
+		connect_to_db();
 		ArrayList<Order> dateOrder = new ArrayList<>();
 		PreparedStatement stmtDatedOrders = null;
 		ResultSet rsDatedOrders = null;
-
 
 		// Query to get all orders placed on the specific date
 		String datedQuery = "SELECT * FROM ordertable WHERE DATE(ordertable_OrderDateTime) = ?";
@@ -649,7 +645,6 @@ public final class DBNinja {
 		}
 
 		conn.close();
-
 		return dateOrder;
 	}
 
@@ -1353,24 +1348,5 @@ public final class DBNinja {
 		}
 		conn.close();
 		return Orderid;
-	}
-
-	public static int getNextPizzaID() throws SQLException, IOException
-	{
-		connect_to_db();
-		double id = 0;
-		int pizzaid = 0;
-		PreparedStatement pizzaIDView = null;
-		ResultSet rsView = null;
-		String view = "SELECT MAX(pizza_PizzaID) FROM pizza";
-		pizzaIDView = conn.prepareStatement(view);
-		rsView = pizzaIDView.executeQuery(view);
-
-		if (rsView.next()) {
-			id = rsView.getDouble(1);
-			pizzaid = (int) id + 1;
-		}
-		conn.close();
-		return pizzaid;
 	}
 }
