@@ -98,7 +98,6 @@ public final class DBNinja {
 
 			// Insert into Order table
 			if (!o.getOrderType().equals(dine_in)) {
-				System.out.println("Test - not dine_in order");
 				String orderQuery = "INSERT INTO ordertable "
 						+ "(ordertable_OrderID, customer_CustID, ordertable_OrderType, " +
 						"ordertable_OrderDateTime, ordertable_CustPrice, " +
@@ -119,7 +118,6 @@ public final class DBNinja {
 				conn.commit();
 			}
 			else{
-				System.out.println("Test - dine_in order");
 				String orderQuery = "INSERT INTO ordertable "
 						+ "(ordertable_OrderID,  ordertable_OrderType, " +
 						"ordertable_OrderDateTime, ordertable_CustPrice, " +
@@ -139,14 +137,12 @@ public final class DBNinja {
 				conn.commit();
 			}
 
-			System.out.println("Test - 1");
 			for (Pizza pizza : o.getPizzaList()) {
 				String pizzaDate = o.getDate();
 				Date date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(pizzaDate);
 				addPizza(date, o.getOrderID(), pizza);
 			}
 
-			System.out.println("Test - 1");
 			for (Discount discount : o.getDiscountList()) {
 				PreparedStatement Discountstmt = null;
 				String discountQuery = "INSERT INTO order_discount (ordertable_OrderID, discount_DiscountID) VALUES (?, ?)";
@@ -156,11 +152,9 @@ public final class DBNinja {
 				Discountstmt.executeUpdate();
 				conn.commit();
 			}
-			System.out.println("Test - 1");
 
 			//FIX THE COMPARISIONS CASSIE TY
 			if (o.getOrderType().equals(delivery)) {
-				System.out.println("Test - delivery");
 				PreparedStatement Deliverystmt = null;
 				String deliveryQuery = "INSERT INTO delivery (ordertable_OrderID, delivery_HouseNum, delivery_Street, delivery_City, delivery_State, delivery_Zip, delivery_IsDelivered) VALUES (?, ?, ?, ?, ?, ?, ?)";
 				DeliveryOrder deliveryOrder = (DeliveryOrder) o;
@@ -170,8 +164,8 @@ public final class DBNinja {
 				String address = deliveryOrder.getAddress();
 
 				String[] parts = address.split("\t");
-				
-				String houseNum = parts[0]; 
+
+				String houseNum = parts[0];
 				String streetName = parts[1];
 				String city = parts[2];
 				String state = parts[3];
@@ -194,7 +188,6 @@ public final class DBNinja {
 				conn.commit();
 
 			} else if (o.getOrderType().equals(dine_in)) {
-				System.out.println("Test - dine_in");
 				PreparedStatement Dineinstmt = null;
 				String dineInQuery = "INSERT INTO dinein (ordertable_OrderID, dinein_TableNum) VALUES (?, ?)";
 				DineinOrder dineinOrder = (DineinOrder) o;
