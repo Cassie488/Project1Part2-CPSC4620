@@ -89,47 +89,57 @@ public final class DBNinja {
 		 * so the cusomter id coming from the Order object will be -1.
 		 *
 		 */
+		o.setOrderID(getNextOrderID());
 		connect_to_db();
+		conn.setAutoCommit(false);
 		PreparedStatement stmt = null;
 
 		try {
+
 
 			// Insert into Order table
 			String orderQuery = "INSERT INTO ordertable "
 					+ "(ordertable_OrderID, customer_CustID, ordertable_OrderType, " +
 					"ordertable_OrderDateTime, ordertable_CustPrice, " +
-					"ordertable_BusPrice, ordertable_isComplete) VALUES (?, ?, ?, ?, ?, ?)";
-			stmt = conn.prepareStatement(orderQuery, Statement.RETURN_GENERATED_KEYS);
-			stmt.setInt(1, o.getOrderID());
+					"ordertable_BusPrice, ordertable_isComplete) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-			if (o.getCustID() != -1) {
+			stmt = conn.prepareStatement(orderQuery);
+			stmt.setInt(1, o.getOrderID());
+			System.out.println(o.getOrderID());
+
+			if (o.getCustID() != java.sql.Types.NULL) {
 				stmt.setInt(2, o.getCustID()); // Handle no customer for Dine In
 			}
 			else {
-				stmt.setNull(2, java.sql.Types.INTEGER);
+				stmt.setNull(2, java.sql.Types.NULL);
 			}
 
 			stmt.setString(3, o.getOrderType());
-			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			Date date_temp = formatter.parse(o.getDate());
-			stmt.setDate(4, new java.sql.Date(date_temp.getTime()));
+			Timestamp date_time = new Timestamp(date_temp.getTime());
+			stmt.setTimestamp(4, date_time);
 			stmt.setDouble(5, o.getCustPrice());
 			stmt.setDouble(6, o.getBusPrice());
 			stmt.setBoolean(7, o.getIsComplete());
-			stmt.executeUpdate();
+			stmt.execute();
+			conn.commit();
 
 			for (Pizza pizza : o.getPizzaList()) {
-				String pizzaDate = pizza.getPizzaDate();
+				String pizzaDate = o.getDate();
 				Date date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(pizzaDate);
 				addPizza(date, o.getOrderID(), pizza);
 			}
 
 			for (Discount discount : o.getDiscountList()) {
+				connect_to_db();
 				String discountQuery = "INSERT INTO order_discount (ordertable_OrderID, discount_DiscountID) VALUES (?, ?)";
 				stmt = conn.prepareStatement(discountQuery);
 				stmt.setInt(1, o.getOrderID());
 				stmt.setInt(2, discount.getDiscountID());
 				stmt.executeUpdate();
+				conn.commit();
+				conn.close();
 			}
 
 			//FIX THE COMPARISIONS CASSIE TY
@@ -171,6 +181,7 @@ public final class DBNinja {
 				stmt.setBoolean(7, deliveryOrder.getIsDelivered());
 
 				stmt.executeUpdate();
+				conn.commit();
 				conn.close();
 			} else if (o.getOrderType().equals(dine_in)) {
 				connect_to_db();
@@ -182,6 +193,7 @@ public final class DBNinja {
 				stmt.setInt(2, dineinOrder.getTableNum());
 
 				stmt.executeUpdate();
+				conn.commit();
 				conn.close();
 			} else if (o.getOrderType().equals(pickup)) {
 				connect_to_db();
@@ -193,20 +205,24 @@ public final class DBNinja {
 				stmt.setBoolean(2, pickupOrder.getIsPickedUp());
 
 				stmt.executeUpdate();
+				conn.commit();
 				conn.close();
 			}
+
 			stmt.close();
 		} catch (SQLException e){
 			conn.rollback();
 		} catch (ParseException e) {
 			throw new RuntimeException(e);
 		}
+		conn.setAutoCommit(true);
+		conn.close();
 	}
 
 	public static int addPizza(java.util.Date d, int orderID, Pizza p) throws SQLException, IOException
 	{
 		/*
-		 * Add the code needed to insert the pizza into into the database.
+		 * Add the code needed to insert the pizza into the database.
 		 * Keep in mind you must also add the pizza discounts and toppings
 		 * associated with the pizza.
 		 *
@@ -247,6 +263,7 @@ public final class DBNinja {
 
 			// Add toppings
 			for (Topping topping : p.getToppings()) {
+				connect_to_db();
 				String sql = "INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble) VALUES (?, ?, ?)";
 
 				stmtTopping = conn.prepareStatement(sql);
@@ -275,20 +292,24 @@ public final class DBNinja {
 				} else {
 					finalToppingAmount = toppingAmount;
 				}
+				connect_to_db();
 				String inventoryUpdateQuery = "UPDATE topping SET toppping_CurINVT = toppping_CurINVT - ? WHERE topping_TopID = ?";
 				stmtInventoryUpdate = conn.prepareStatement(inventoryUpdateQuery);
 				stmtInventoryUpdate.setDouble(1, finalToppingAmount);
 				stmtInventoryUpdate.setInt(2, topping.getTopID());
 				stmtInventoryUpdate.executeUpdate();
+				conn.close();
 			}
 
 			for (Discount discount : p.getDiscounts()) {
+				connect_to_db();
 				String sql = "INSERT INTO pizza_discount (pizza_PizzaID, discount_DiscountID) VALUES (?, ?)";
 
 				stmtDiscount = conn.prepareStatement(sql);
 				stmtDiscount.setInt(1, PizzaID);
 				stmtDiscount.setInt(2, discount.getDiscountID());
 				stmtDiscount.executeUpdate();
+				conn.close();
 			}
 
 
@@ -1291,5 +1312,24 @@ public final class DBNinja {
 					return false;
 			}
 		}
+	}
+
+	public static int getNextOrderID() throws SQLException, IOException
+	{
+		connect_to_db();
+		double id = 0;
+		int Orderid = 0;
+		PreparedStatement profitOrderView = null;
+		ResultSet rsView = null;
+		String view = "SELECT MAX(ordertable_OrderID) FROM ordertable";
+		profitOrderView = conn.prepareStatement(view);
+		rsView = profitOrderView.executeQuery(view);
+
+		if (rsView.next()) {
+			id = rsView.getDouble(1);
+			Orderid = (int) id + 1;
+		}
+		conn.close();
+		return Orderid;
 	}
 }
