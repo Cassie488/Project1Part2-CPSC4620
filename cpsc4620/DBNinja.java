@@ -169,20 +169,13 @@ public final class DBNinja {
 				//123 main st, charleston, SC 29466
 				String address = deliveryOrder.getAddress();
 
-				String[] parts = address.split(", ");
-
-				String street = parts[0];
-				String city = parts[1];
-				String stateZip = parts[2];
-
-				String[] stateZipParts = stateZip.split(" ");
-
-				String state = stateZipParts[0];
-				String zipCode = stateZipParts[1];
-
-				String[] streetParts = street.split(" ", 2);
-				String houseNum = streetParts[0]; // The first word is the house number
-				String streetName = streetParts[1];
+				String[] parts = address.split("\t");
+				
+				String houseNum = parts[0]; 
+				String streetName = parts[1];
+				String city = parts[2];
+				String state = parts[3];
+				String zipCode = parts[4];
 
 
 				int zipCodeInt = Integer.parseInt(zipCode);
