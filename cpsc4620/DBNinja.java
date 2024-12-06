@@ -1354,4 +1354,23 @@ public final class DBNinja {
 		conn.close();
 		return Orderid;
 	}
+
+	public static int getNextPizzaID() throws SQLException, IOException
+	{
+		connect_to_db();
+		double id = 0;
+		int pizzaid = 0;
+		PreparedStatement pizzaIDView = null;
+		ResultSet rsView = null;
+		String view = "SELECT MAX(pizza_PizzaID) FROM pizza";
+		pizzaIDView = conn.prepareStatement(view);
+		rsView = pizzaIDView.executeQuery(view);
+
+		if (rsView.next()) {
+			id = rsView.getDouble(1);
+			pizzaid = (int) id + 1;
+		}
+		conn.close();
+		return pizzaid;
+	}
 }
