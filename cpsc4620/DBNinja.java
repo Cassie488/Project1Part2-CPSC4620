@@ -598,6 +598,15 @@ public final class DBNinja {
 				}
 				PickupOrder latest = new PickupOrder(orderID, customerID, date, custPrice, busPrice, isPickedUp, isComplete);
 
+				ArrayList<Discount> discountList = new ArrayList<>();
+				discountList = getDiscounts(latest);
+				latest.setDiscountList(discountList);
+
+				//populate the pizza list here
+				ArrayList<Pizza> pizzasList = new ArrayList<>();
+				pizzasList = getPizzas(latest);
+				latest.setPizzaList(pizzasList);
+
 				conn.close();
 				return latest;
 
@@ -614,6 +623,15 @@ public final class DBNinja {
 					tableNum = rsDineIn.getInt("dinein_TableNum");
 				}
 				DineinOrder latest = new DineinOrder(orderID, customerID, date, custPrice, busPrice, isComplete, tableNum);
+
+				ArrayList<Discount> discountList = new ArrayList<>();
+				discountList = getDiscounts(latest);
+				latest.setDiscountList(discountList);
+
+				//populate the pizza list here
+				ArrayList<Pizza> pizzasList = new ArrayList<>();
+				pizzasList = getPizzas(latest);
+				latest.setPizzaList(pizzasList);
 
 				conn.close();
 				return latest;
@@ -637,7 +655,16 @@ public final class DBNinja {
 					String address = String.format("%d\t%s\t%s\t%s\t%d", houseNum, street, city, state, zipCode);
 
 					DeliveryOrder latest = new DeliveryOrder(orderID, customerID, date, custPrice, busPrice, isComplete, address, IsDelivered);
-				
+					
+					ArrayList<Discount> discountList = new ArrayList<>();
+					discountList = getDiscounts(latest);
+					latest.setDiscountList(discountList);
+
+					//populate the pizza list here
+					ArrayList<Pizza> pizzasList = new ArrayList<>();
+					pizzasList = getPizzas(latest);
+					latest.setPizzaList(pizzasList);
+					
 					conn.close();
 					return latest;
 				}
