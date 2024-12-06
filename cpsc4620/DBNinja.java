@@ -240,6 +240,7 @@ public final class DBNinja {
 		 *
 		 */
 		connect_to_db();
+		conn.setAutoCommit(false);
 
 		int PizzaID = -1;
 		ResultSet rs = null;
@@ -263,6 +264,9 @@ public final class DBNinja {
 			pizzaStmt.setInt(8, orderID);
 
 			pizzaStmt.executeUpdate();
+			conn.commit();
+			conn.setAutoCommit(true);
+			conn.close();
 			rs = pizzaStmt.getGeneratedKeys();
 			if (rs.next()) {
 				PizzaID = rs.getInt(1);
@@ -271,6 +275,7 @@ public final class DBNinja {
 			// Add toppings
 			for (Topping topping : p.getToppings()) {
 				connect_to_db();
+				conn.setAutoCommit(false);
 				String sql = "INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble) VALUES (?, ?, ?)";
 
 				stmtTopping = conn.prepareStatement(sql);
@@ -278,6 +283,9 @@ public final class DBNinja {
 				stmtTopping.setInt(2, topping.getTopID());
 				stmtTopping.setInt(3, topping.getDoubled() ? 1 : 0);
 				stmtTopping.executeUpdate();
+				conn.commit();
+				conn.setAutoCommit(true);
+				conn.close();
 
 				double toppingAmount = 0.0;
 				//Updating inventory
@@ -299,27 +307,34 @@ public final class DBNinja {
 				} else {
 					finalToppingAmount = toppingAmount;
 				}
+
 				connect_to_db();
+				conn.setAutoCommit(false);
 				String inventoryUpdateQuery = "UPDATE topping SET toppping_CurINVT = toppping_CurINVT - ? WHERE topping_TopID = ?";
 				stmtInventoryUpdate = conn.prepareStatement(inventoryUpdateQuery);
 				stmtInventoryUpdate.setDouble(1, finalToppingAmount);
 				stmtInventoryUpdate.setInt(2, topping.getTopID());
 				stmtInventoryUpdate.executeUpdate();
+				conn.commit();
+				conn.setAutoCommit(true);
 				conn.close();
 			}
 
 			for (Discount discount : p.getDiscounts()) {
 				connect_to_db();
+				conn.setAutoCommit(false);
 				String sql = "INSERT INTO pizza_discount (pizza_PizzaID, discount_DiscountID) VALUES (?, ?)";
 
 				stmtDiscount = conn.prepareStatement(sql);
 				stmtDiscount.setInt(1, PizzaID);
 				stmtDiscount.setInt(2, discount.getDiscountID());
 				stmtDiscount.executeUpdate();
+				conn.commit();
+				conn.setAutoCommit(true);
 				conn.close();
 			}
-
-
+			conn.commit();
+			conn.setAutoCommit(true);
 			conn.close();
 		}
 		return PizzaID;
