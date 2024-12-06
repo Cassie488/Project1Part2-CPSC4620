@@ -636,7 +636,7 @@ public final class DBNinja {
 				conn.close();
 				return latest;
 
-			}else if(orderType.equals(pickup)){
+			}else if(orderType.equals(delivery)){
 				String queryOrderDelivery = "SELECT delivery_HouseNum, delivery_Street, delivery_City, delivery_State, delivery_Zip, delivery_IsDelivered FROM delivery WHERE ordertable_OrderID = ?";
 
 				PreparedStatement stmtDelivery = conn.prepareStatement(queryOrderDelivery);
@@ -664,7 +664,7 @@ public final class DBNinja {
 					ArrayList<Pizza> pizzasList = new ArrayList<>();
 					pizzasList = getPizzas(latest);
 					latest.setPizzaList(pizzasList);
-					
+
 					conn.close();
 					return latest;
 				}
