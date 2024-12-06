@@ -7,6 +7,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 
+import javax.naming.spi.DirStateFactory.Result;
+
 import static java.sql.Types.NULL;
 
 /*
@@ -565,10 +567,9 @@ public final class DBNinja {
 		 * NOTE...there will ALWAYS be a "last order"!
 		 */
 		connect_to_db();
-		Order latest = null;
 
 		String latestQuery = "SELECT * FROM ordertable ORDER BY ordertable_OrderDateTime DESC LIMIT 1";
-
+		Order order = null;
 		PreparedStatement stmtLatestOrder = conn.prepareStatement(latestQuery);
 		ResultSet rsLatest = stmtLatestOrder.executeQuery();
 
@@ -584,12 +585,67 @@ public final class DBNinja {
 			boolean isComplete = rsLatest.getBoolean("ordertable_isComplete");
 
 			// Create an Order object from the result set data
-			latest = new Order(orderID, customerID, orderType, date, custPrice, busPrice, isComplete);
-			// You can also populate the pizza list, discounts, etc., if needed
-		}
+			if(orderType.equals(pickup)){ 
+				String queryOrderPickup = "SELECT pickup_IsPickedUp FROM pickup WHERE ordertable_OrderID = ?";
 
-		conn.close();
-		return latest;
+				PreparedStatement stmtPickUp = conn.prepareStatement(queryOrderPickup);
+				stmtPickUp.setInt(1, orderID);
+				ResultSet rsPickUp = stmtPickUp.executeQuery();
+
+				boolean isPickedUp = false;
+				if(rsPickUp.next()){
+					isPickedUp = rsPickUp.getBoolean("pickup_IsPickedUP");
+				}
+				PickupOrder latest = new PickupOrder(orderID, customerID, date, custPrice, busPrice, isPickedUp, isComplete);
+
+				conn.close();
+				return latest;
+
+			} else if(orderType.equals(dine_in)){
+				String queryOrderDineIn = "SELECT dinein_TableNum FROM dinein WHERE ordertable_OrderID = ?";
+
+				PreparedStatement stmtDineIn = conn.prepareStatement(queryOrderDineIn);
+				stmtDineIn.setInt(1, orderID);
+				ResultSet rsDineIn = stmtDineIn.executeQuery();
+
+				int tableNum = 0;
+
+				if(rsDineIn.next()){
+					tableNum = rsDineIn.getInt("dinein_TableNum");
+				}
+				DineinOrder latest = new DineinOrder(orderID, customerID, date, custPrice, busPrice, isComplete, tableNum);
+
+				conn.close();
+				return latest;
+
+			}else if(orderType.equals(pickup)){
+				String queryOrderDelivery = "SELECT delivery_HouseNum, delivery_Street, delivery_City, delivery_State, delivery_Zip, delivery_IsDelivered FROM delivery WHERE ordertable_OrderID = ?";
+
+				PreparedStatement stmtDelivery = conn.prepareStatement(queryOrderDelivery);
+				stmtDelivery.setInt(1, orderID);
+				ResultSet rsDelivery = stmtDelivery.executeQuery();
+
+				if(rsDelivery.next()){
+					int houseNum = rsDelivery.getInt("delivery_HouseNum");
+					String street = rsDelivery.getString("delivery_Street");
+					String city = rsDelivery.getString("delivery_City");
+					String state = rsDelivery.getString("delivery_State");
+					int zipCode = rsDelivery.getInt("delivery_Zip");
+					boolean IsDelivered = rsDelivery.getBoolean("delivery_IsDelivered");
+
+
+					String address = String.format("%d\t%s\t%s\t%s\t%d", houseNum, street, city, state, zipCode);
+
+					DeliveryOrder latest = new DeliveryOrder(orderID, customerID, date, custPrice, busPrice, isComplete, address, IsDelivered);
+				
+					conn.close();
+					return latest;
+				}
+			
+			}
+		}
+		return order;
+
 	}
 
 	public static ArrayList<Order> getOrdersByDate(String date) throws SQLException, IOException
