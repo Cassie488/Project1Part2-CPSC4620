@@ -686,6 +686,9 @@ public final class DBNinja {
 		ArrayList<Order> dateOrder = new ArrayList<>();
 		PreparedStatement stmtDatedOrders = null;
 		ResultSet rsDatedOrders = null;
+		DeliveryOrder Deliveryorder;
+		DineinOrder DineInorder;
+		PickupOrder Pickuporder;
 
 		// Query to get all orders placed on the specific date
 		String datedQuery = "SELECT * FROM ordertable WHERE DATE(ordertable_OrderDateTime) = ?";
@@ -705,9 +708,97 @@ public final class DBNinja {
 			double busPrice = rsDatedOrders.getDouble("ordertable_BusPrice");
 			boolean isComplete = rsDatedOrders.getBoolean("ordertable_isComplete");
 
-			Order order = new Order(orderID, customerID, orderType, orderDateString, custPrice, busPrice, isComplete);
+			if(orderType.equals(pickup)){ 
+				connect_to_db();
+				String queryOrderPickup = "SELECT pickup_IsPickedUp FROM pickup WHERE ordertable_OrderID = ?";
 
-			dateOrder.add(order);
+				PreparedStatement stmtPickUp = conn.prepareStatement(queryOrderPickup);
+				stmtPickUp.setInt(1, orderID);
+				ResultSet rsPickUp = stmtPickUp.executeQuery();
+
+				boolean isPickedUp = false;
+				if(rsPickUp.next()){
+					isPickedUp = rsPickUp.getBoolean("pickup_IsPickedUP");
+				}
+				Pickuporder = new PickupOrder(orderID, customerID, date, custPrice, busPrice, isPickedUp, isComplete);
+
+				ArrayList<Discount> discountList = new ArrayList<>();
+				discountList = getDiscounts(Pickuporder);
+				Pickuporder.setDiscountList(discountList);
+
+				//populate the pizza list here
+				ArrayList<Pizza> pizzasList = new ArrayList<>();
+				pizzasList = getPizzas(Pickuporder);
+				Pickuporder.setPizzaList(pizzasList);
+
+				dateOrder.add(Pickuporder);
+
+				conn.close();
+
+			} else if(orderType.equals(dine_in)){
+				connect_to_db();
+				String queryOrderDineIn = "SELECT dinein_TableNum FROM dinein WHERE ordertable_OrderID = ?";
+
+				PreparedStatement stmtDineIn = conn.prepareStatement(queryOrderDineIn);
+				stmtDineIn.setInt(1, orderID);
+				ResultSet rsDineIn = stmtDineIn.executeQuery();
+
+				int tableNum = 0;
+
+				if(rsDineIn.next()){
+					tableNum = rsDineIn.getInt("dinein_TableNum");
+				}
+				DineInorder = new DineinOrder(orderID, customerID, date, custPrice, busPrice, isComplete, tableNum);
+
+				ArrayList<Discount> discountList = new ArrayList<>();
+				discountList = getDiscounts(DineInorder);
+				DineInorder.setDiscountList(discountList);
+
+				//populate the pizza list here
+				ArrayList<Pizza> pizzasList = new ArrayList<>();
+				pizzasList = getPizzas(DineInorder);
+				DineInorder.setPizzaList(pizzasList);
+
+				dateOrder.add(DineInorder);
+
+				conn.close();
+
+			}else if(orderType.equals(delivery)){
+				connect_to_db();
+				String queryOrderDelivery = "SELECT delivery_HouseNum, delivery_Street, delivery_City, delivery_State, delivery_Zip, delivery_IsDelivered FROM delivery WHERE ordertable_OrderID = ?";
+
+				PreparedStatement stmtDelivery = conn.prepareStatement(queryOrderDelivery);
+				stmtDelivery.setInt(1, orderID);
+				ResultSet rsDelivery = stmtDelivery.executeQuery();
+
+				if(rsDelivery.next()){
+					int houseNum = rsDelivery.getInt("delivery_HouseNum");
+					String street = rsDelivery.getString("delivery_Street");
+					String city = rsDelivery.getString("delivery_City");
+					String state = rsDelivery.getString("delivery_State");
+					int zipCode = rsDelivery.getInt("delivery_Zip");
+					boolean IsDelivered = rsDelivery.getBoolean("delivery_IsDelivered");
+
+
+					String address = String.format("%d\t%s\t%s\t%s\t%d", houseNum, street, city, state, zipCode);
+
+					Deliveryorder = new DeliveryOrder(orderID, customerID, date, custPrice, busPrice, isComplete, address, IsDelivered);
+					
+					ArrayList<Discount> discountList = new ArrayList<>();
+					discountList = getDiscounts(Deliveryorder);
+					Deliveryorder.setDiscountList(discountList);
+
+					//populate the pizza list here
+					ArrayList<Pizza> pizzasList = new ArrayList<>();
+					pizzasList = getPizzas(Deliveryorder);
+					Deliveryorder.setPizzaList(pizzasList);
+
+					dateOrder.add(Deliveryorder);
+
+					conn.close();
+				}
+			
+			}
 		}
 
 		conn.close();
