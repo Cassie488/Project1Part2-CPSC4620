@@ -105,7 +105,6 @@ public final class DBNinja {
 
 			stmt = conn.prepareStatement(orderQuery);
 			stmt.setInt(1, o.getOrderID());
-			System.out.println(o.getOrderID());
 
 			if (o.getCustID() != java.sql.Types.NULL) {
 				stmt.setInt(2, o.getCustID()); // Handle no customer for Dine In
@@ -122,7 +121,7 @@ public final class DBNinja {
 			stmt.setDouble(5, o.getCustPrice());
 			stmt.setDouble(6, o.getBusPrice());
 			stmt.setBoolean(7, o.getIsComplete());
-			stmt.execute();
+			stmt.executeUpdate();
 			conn.commit();
 
 			for (Pizza pizza : o.getPizzaList()) {
@@ -133,18 +132,21 @@ public final class DBNinja {
 
 			for (Discount discount : o.getDiscountList()) {
 				connect_to_db();
+				conn.setAutoCommit(false);
 				String discountQuery = "INSERT INTO order_discount (ordertable_OrderID, discount_DiscountID) VALUES (?, ?)";
 				stmt = conn.prepareStatement(discountQuery);
 				stmt.setInt(1, o.getOrderID());
 				stmt.setInt(2, discount.getDiscountID());
 				stmt.executeUpdate();
 				conn.commit();
+				conn.setAutoCommit(true);
 				conn.close();
 			}
 
 			//FIX THE COMPARISIONS CASSIE TY
 			if (o.getOrderType().equals(delivery)) {
 				connect_to_db();
+				conn.setAutoCommit(false);
 				String deliveryQuery = "INSERT INTO delivery (ordertable_OrderID, delivery_HouseNum, delivery_Street, delivery_City, delivery_State, delivery_Zip, delivery_IsDelivered) VALUES (?, ?, ?, ?, ?, ?, ?)";
 				DeliveryOrder deliveryOrder = (DeliveryOrder) o;
 				stmt = conn.prepareStatement(deliveryQuery);
@@ -182,9 +184,11 @@ public final class DBNinja {
 
 				stmt.executeUpdate();
 				conn.commit();
+				conn.setAutoCommit(true);
 				conn.close();
 			} else if (o.getOrderType().equals(dine_in)) {
 				connect_to_db();
+				conn.setAutoCommit(false);
 				String dineInQuery = "INSERT INTO dinein (ordertable_OrderID, dinein_TableNum) VALUES (?, ?)";
 				DineinOrder dineinOrder = (DineinOrder) o;
 				stmt = conn.prepareStatement(dineInQuery);
@@ -194,9 +198,11 @@ public final class DBNinja {
 
 				stmt.executeUpdate();
 				conn.commit();
+				conn.setAutoCommit(true);
 				conn.close();
 			} else if (o.getOrderType().equals(pickup)) {
 				connect_to_db();
+				conn.setAutoCommit(false);
 				String pickupQuery = "INSERT INTO pickup (ordertable_OrderID, pickup_IsPickedUp) VALUES (?, ?)";
 				PickupOrder pickupOrder = (PickupOrder) o;
 				stmt = conn.prepareStatement(pickupQuery);
@@ -206,6 +212,7 @@ public final class DBNinja {
 
 				stmt.executeUpdate();
 				conn.commit();
+				conn.setAutoCommit(true);
 				conn.close();
 			}
 
@@ -352,7 +359,7 @@ public final class DBNinja {
 
 		}
 
-		return -1;
+		return customerId;
 	}
 
 	public static void completeOrder(int OrderID, order_state newState ) throws SQLException, IOException
