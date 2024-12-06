@@ -294,6 +294,7 @@ public final class DBNinja {
 					finalToppingAmount = toppingAmount;
 				}
 
+				finalToppingAmount = Math.ceil(finalToppingAmount);
 
 				String inventoryUpdateQuery = "UPDATE topping SET topping_CurINVT = (topping_CurINVT - ?) WHERE topping_TopID = ?";
 				stmtInventoryUpdate = conn.prepareStatement(inventoryUpdateQuery);
@@ -585,7 +586,7 @@ public final class DBNinja {
 			boolean isComplete = rsLatest.getBoolean("ordertable_isComplete");
 
 			// Create an Order object from the result set data
-			if(orderType.equals(pickup)){ 
+			if(orderType.equals(pickup)){
 				String queryOrderPickup = "SELECT pickup_IsPickedUp FROM pickup WHERE ordertable_OrderID = ?";
 
 				PreparedStatement stmtPickUp = conn.prepareStatement(queryOrderPickup);
@@ -655,7 +656,7 @@ public final class DBNinja {
 					String address = String.format("%d\t%s\t%s\t%s\t%d", houseNum, street, city, state, zipCode);
 
 					DeliveryOrder latest = new DeliveryOrder(orderID, customerID, date, custPrice, busPrice, isComplete, address, IsDelivered);
-					
+
 					ArrayList<Discount> discountList = new ArrayList<>();
 					discountList = getDiscounts(latest);
 					latest.setDiscountList(discountList);
@@ -668,7 +669,7 @@ public final class DBNinja {
 					conn.close();
 					return latest;
 				}
-			
+
 			}
 		}
 		return order;
@@ -708,7 +709,7 @@ public final class DBNinja {
 			double busPrice = rsDatedOrders.getDouble("ordertable_BusPrice");
 			boolean isComplete = rsDatedOrders.getBoolean("ordertable_isComplete");
 
-			if(orderType.equals(pickup)){ 
+			if(orderType.equals(pickup)){
 				connect_to_db();
 				String queryOrderPickup = "SELECT pickup_IsPickedUp FROM pickup WHERE ordertable_OrderID = ?";
 
@@ -732,8 +733,6 @@ public final class DBNinja {
 				Pickuporder.setPizzaList(pizzasList);
 
 				dateOrder.add(Pickuporder);
-
-				conn.close();
 
 			} else if(orderType.equals(dine_in)){
 				connect_to_db();
@@ -761,7 +760,6 @@ public final class DBNinja {
 
 				dateOrder.add(DineInorder);
 
-				conn.close();
 
 			}else if(orderType.equals(delivery)){
 				connect_to_db();
@@ -783,7 +781,7 @@ public final class DBNinja {
 					String address = String.format("%d\t%s\t%s\t%s\t%d", houseNum, street, city, state, zipCode);
 
 					Deliveryorder = new DeliveryOrder(orderID, customerID, date, custPrice, busPrice, isComplete, address, IsDelivered);
-					
+
 					ArrayList<Discount> discountList = new ArrayList<>();
 					discountList = getDiscounts(Deliveryorder);
 					Deliveryorder.setDiscountList(discountList);
@@ -794,10 +792,8 @@ public final class DBNinja {
 					Deliveryorder.setPizzaList(pizzasList);
 
 					dateOrder.add(Deliveryorder);
-
-					conn.close();
 				}
-			
+
 			}
 		}
 
