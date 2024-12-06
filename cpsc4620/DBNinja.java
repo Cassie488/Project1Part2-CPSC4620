@@ -92,64 +92,79 @@ public final class DBNinja {
 		o.setOrderID(getNextOrderID());
 		connect_to_db();
 		conn.setAutoCommit(false);
-		PreparedStatement stmt = null;
+		PreparedStatement Orderstmt = null;
 
 		try {
 
 			// Insert into Order table
-			String orderQuery = "INSERT INTO ordertable "
-					+ "(ordertable_OrderID, customer_CustID, ordertable_OrderType, " +
-					"ordertable_OrderDateTime, ordertable_CustPrice, " +
-					"ordertable_BusPrice, ordertable_isComplete) VALUES (?, ?, ?, ?, ?, ?, ?)";
+			if (!o.getOrderType().equals(dine_in)) {
+				System.out.println("Test - not dine_in order");
+				String orderQuery = "INSERT INTO ordertable "
+						+ "(ordertable_OrderID, customer_CustID, ordertable_OrderType, " +
+						"ordertable_OrderDateTime, ordertable_CustPrice, " +
+						"ordertable_BusPrice, ordertable_isComplete) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-			stmt = conn.prepareStatement(orderQuery);
-			stmt.setInt(1, o.getOrderID());
-
-			if (o.getCustID() != java.sql.Types.NULL) {
-				stmt.setInt(2, o.getCustID()); // Handle no customer for Dine In
+				Orderstmt = conn.prepareStatement(orderQuery);
+				Orderstmt.setInt(1, o.getOrderID());
+				Orderstmt.setInt(2, o.getCustID()); // Handle no customer for Dine In
+				Orderstmt.setString(3, o.getOrderType());
+				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				Date date_temp = formatter.parse(o.getDate());
+				Timestamp date_time = new Timestamp(date_temp.getTime());
+				Orderstmt.setTimestamp(4, date_time);
+				Orderstmt.setDouble(5, o.getCustPrice());
+				Orderstmt.setDouble(6, o.getBusPrice());
+				Orderstmt.setBoolean(7, o.getIsComplete());
+				Orderstmt.executeUpdate();
+				conn.commit();
 			}
-			else {
-				stmt.setNull(2, java.sql.Types.NULL);
+			else{
+				System.out.println("Test - dine_in order");
+				String orderQuery = "INSERT INTO ordertable "
+						+ "(ordertable_OrderID,  ordertable_OrderType, " +
+						"ordertable_OrderDateTime, ordertable_CustPrice, " +
+						"ordertable_BusPrice, ordertable_isComplete) VALUES (?, ?, ?, ?, ?, ?)";
+
+				Orderstmt = conn.prepareStatement(orderQuery);
+				Orderstmt.setInt(1, o.getOrderID());
+				Orderstmt.setString(2, o.getOrderType());
+				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				Date date_temp = formatter.parse(o.getDate());
+				Timestamp date_time = new Timestamp(date_temp.getTime());
+				Orderstmt.setTimestamp(3, date_time);
+				Orderstmt.setDouble(4, o.getCustPrice());
+				Orderstmt.setDouble(5, o.getBusPrice());
+				Orderstmt.setBoolean(6, o.getIsComplete());
+				Orderstmt.executeUpdate();
+				conn.commit();
 			}
 
-			stmt.setString(3, o.getOrderType());
-			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			Date date_temp = formatter.parse(o.getDate());
-			Timestamp date_time = new Timestamp(date_temp.getTime());
-			stmt.setTimestamp(4, date_time);
-			stmt.setDouble(5, o.getCustPrice());
-			stmt.setDouble(6, o.getBusPrice());
-			stmt.setBoolean(7, o.getIsComplete());
-			stmt.executeUpdate();
-			conn.commit();
-			conn.setAutoCommit(true);
-			conn.close();
-
+			System.out.println("Test - 1");
 			for (Pizza pizza : o.getPizzaList()) {
 				String pizzaDate = o.getDate();
 				Date date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(pizzaDate);
 				addPizza(date, o.getOrderID(), pizza);
 			}
 
+			System.out.println("Test - 1");
 			for (Discount discount : o.getDiscountList()) {
-				connect_to_db();
-				conn.setAutoCommit(false);
+				PreparedStatement Discountstmt = null;
 				String discountQuery = "INSERT INTO order_discount (ordertable_OrderID, discount_DiscountID) VALUES (?, ?)";
-				stmt = conn.prepareStatement(discountQuery);
-				stmt.setInt(1, o.getOrderID());
-				stmt.setInt(2, discount.getDiscountID());
-				stmt.executeUpdate();
+				Discountstmt = conn.prepareStatement(discountQuery);
+				Discountstmt.setInt(1, o.getOrderID());
+				Discountstmt.setInt(2, discount.getDiscountID());
+				Discountstmt.executeUpdate();
 				conn.commit();
-				conn.setAutoCommit(true);
 			}
+			System.out.println("Test - 1");
 
 			//FIX THE COMPARISIONS CASSIE TY
 			if (o.getOrderType().equals(delivery)) {
-				connect_to_db();
-				conn.setAutoCommit(false);
+				System.out.println("Test - delivery");
+				PreparedStatement Deliverystmt = null;
 				String deliveryQuery = "INSERT INTO delivery (ordertable_OrderID, delivery_HouseNum, delivery_Street, delivery_City, delivery_State, delivery_Zip, delivery_IsDelivered) VALUES (?, ?, ?, ?, ?, ?, ?)";
 				DeliveryOrder deliveryOrder = (DeliveryOrder) o;
-				stmt = conn.prepareStatement(deliveryQuery);
+				Deliverystmt = conn.prepareStatement(deliveryQuery);
 
 				//123 main st, charleston, SC 29466
 				String address = deliveryOrder.getAddress();
@@ -174,52 +189,47 @@ public final class DBNinja {
 				int houseNumInt = Integer.parseInt(houseNum);
 
 
-				stmt.setInt(1, o.getOrderID());
-				stmt.setInt(2, houseNumInt);
-				stmt.setString(3, streetName);
-				stmt.setString(4, city);
-				stmt.setString(5, state);
-				stmt.setInt(6, zipCodeInt);
-				stmt.setBoolean(7, deliveryOrder.getIsDelivered());
+				Deliverystmt.setInt(1, deliveryOrder.getOrderID());
+				Deliverystmt.setInt(2, houseNumInt);
+				Deliverystmt.setString(3, streetName);
+				Deliverystmt.setString(4, city);
+				Deliverystmt.setString(5, state);
+				Deliverystmt.setInt(6, zipCodeInt);
+				Deliverystmt.setBoolean(7, deliveryOrder.getIsDelivered());
 
-				stmt.executeUpdate();
+				Deliverystmt.executeUpdate();
 				conn.commit();
-				conn.setAutoCommit(true);
+
 			} else if (o.getOrderType().equals(dine_in)) {
-				connect_to_db();
-				conn.setAutoCommit(false);
+				System.out.println("Test - dine_in");
+				PreparedStatement Dineinstmt = null;
 				String dineInQuery = "INSERT INTO dinein (ordertable_OrderID, dinein_TableNum) VALUES (?, ?)";
 				DineinOrder dineinOrder = (DineinOrder) o;
-				stmt = conn.prepareStatement(dineInQuery);
+				Dineinstmt = conn.prepareStatement(dineInQuery);
 
-				stmt.setInt(1, o.getOrderID());
-				stmt.setInt(2, dineinOrder.getTableNum());
+				Dineinstmt.setInt(1, dineinOrder.getOrderID());
+				Dineinstmt.setInt(2, dineinOrder.getTableNum());
 
-				stmt.executeUpdate();
+				Dineinstmt.executeUpdate();
 				conn.commit();
-				conn.setAutoCommit(true);
 			} else if (o.getOrderType().equals(pickup)) {
-				connect_to_db();
-				conn.setAutoCommit(false);
+				PreparedStatement Pickupstmt = null;
 				String pickupQuery = "INSERT INTO pickup (ordertable_OrderID, pickup_IsPickedUp) VALUES (?, ?)";
 				PickupOrder pickupOrder = (PickupOrder) o;
-				stmt = conn.prepareStatement(pickupQuery);
+				Pickupstmt = conn.prepareStatement(pickupQuery);
 
-				stmt.setInt(1, o.getOrderID());
-				stmt.setBoolean(2, pickupOrder.getIsPickedUp());
+				Pickupstmt.setInt(1, pickupOrder.getOrderID());
+				Pickupstmt.setBoolean(2, pickupOrder.getIsPickedUp());
 
-				stmt.executeUpdate();
+				Pickupstmt.executeUpdate();
 				conn.commit();
-				conn.setAutoCommit(true);
 			}
-
-			stmt.close();
 		} catch (SQLException e){
 			conn.rollback();
 		} catch (ParseException e) {
 			throw new RuntimeException(e);
 		}
-
+		conn.close();
 	}
 
 	public static int addPizza(java.util.Date d, int orderID, Pizza p) throws SQLException, IOException
@@ -235,10 +245,9 @@ public final class DBNinja {
 		 * This method returns the id of the pizza just added.
 		 *
 		 */
-		connect_to_db();
-		conn.setAutoCommit(false);
 
-		int PizzaID = -1;
+		p.setPizzaID(getNextPizzaID());
+		int PizzaID = p.getPizzaID();
 		ResultSet rs = null;
 		PreparedStatement stmtTopping = null;
 		PreparedStatement stmtDiscount = null;
@@ -246,8 +255,6 @@ public final class DBNinja {
 
 		String pizzaInsertQuery = "INSERT INTO pizza (pizza_PizzaID, pizza_Size, pizza_CrustType, pizza_PizzaState, pizza_PizzaDate, pizza_CustPrice, pizza_BusPrice, ordertable_OrderID) "
 				+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
-
 
 		try (PreparedStatement pizzaStmt = conn.prepareStatement(pizzaInsertQuery, Statement.RETURN_GENERATED_KEYS)) {
 			pizzaStmt.setInt(1, p.getPizzaID());
@@ -261,8 +268,7 @@ public final class DBNinja {
 
 			pizzaStmt.executeUpdate();
 			conn.commit();
-			conn.setAutoCommit(true);
-			conn.close();
+
 			rs = pizzaStmt.getGeneratedKeys();
 			if (rs.next()) {
 				PizzaID = rs.getInt(1);
@@ -270,8 +276,6 @@ public final class DBNinja {
 
 			// Add toppings
 			for (Topping topping : p.getToppings()) {
-				connect_to_db();
-				conn.setAutoCommit(false);
 				String sql = "INSERT INTO pizza_topping (pizza_PizzaID, topping_TopID, pizza_topping_IsDouble) VALUES (?, ?, ?)";
 
 				stmtTopping = conn.prepareStatement(sql);
@@ -280,8 +284,6 @@ public final class DBNinja {
 				stmtTopping.setInt(3, topping.getDoubled() ? 1 : 0);
 				stmtTopping.executeUpdate();
 				conn.commit();
-				conn.setAutoCommit(true);
-				conn.close();
 
 				double toppingAmount = 0.0;
 				//Updating inventory
@@ -304,21 +306,18 @@ public final class DBNinja {
 					finalToppingAmount = toppingAmount;
 				}
 
-				connect_to_db();
-				conn.setAutoCommit(false);
-				String inventoryUpdateQuery = "UPDATE topping SET topping_CurINVT = topping_CurINVT - ? WHERE topping_TopID = ?";
+
+				String inventoryUpdateQuery = "UPDATE topping SET topping_CurINVT = (topping_CurINVT - ?) WHERE topping_TopID = ?";
 				stmtInventoryUpdate = conn.prepareStatement(inventoryUpdateQuery);
 				stmtInventoryUpdate.setDouble(1, finalToppingAmount);
 				stmtInventoryUpdate.setInt(2, topping.getTopID());
 				stmtInventoryUpdate.executeUpdate();
 				conn.commit();
-				conn.setAutoCommit(true);
-				conn.close();
+
 			}
 
 			for (Discount discount : p.getDiscounts()) {
-				connect_to_db();
-				conn.setAutoCommit(false);
+
 				String sql = "INSERT INTO pizza_discount (pizza_PizzaID, discount_DiscountID) VALUES (?, ?)";
 
 				stmtDiscount = conn.prepareStatement(sql);
@@ -326,12 +325,10 @@ public final class DBNinja {
 				stmtDiscount.setInt(2, discount.getDiscountID());
 				stmtDiscount.executeUpdate();
 				conn.commit();
-				conn.setAutoCommit(true);
-				conn.close();
+
 			}
 			conn.commit();
-			conn.setAutoCommit(true);
-			conn.close();
+
 		}
 		return PizzaID;
 	}
@@ -1334,6 +1331,7 @@ public final class DBNinja {
 	public static int getNextOrderID() throws SQLException, IOException
 	{
 		connect_to_db();
+		conn.setAutoCommit(false);
 		double id = 0;
 		int Orderid = 0;
 		PreparedStatement profitOrderView = null;
@@ -1341,17 +1339,18 @@ public final class DBNinja {
 		String view = "SELECT MAX(ordertable_OrderID) FROM ordertable";
 		profitOrderView = conn.prepareStatement(view);
 		rsView = profitOrderView.executeQuery(view);
+		conn.commit();
 
 		if (rsView.next()) {
 			id = rsView.getDouble(1);
 			Orderid = (int) id + 1;
 		}
-		conn.close();
 		return Orderid;
 	}
 	public static int getNextPizzaID() throws SQLException, IOException
 	{
 		connect_to_db();
+		conn.setAutoCommit(false);
 		double id = 0;
 		int pizzaid = 0;
 		PreparedStatement pizzaIDView = null;
@@ -1359,11 +1358,12 @@ public final class DBNinja {
 		String view = "SELECT MAX(pizza_PizzaID) FROM pizza";
 		pizzaIDView = conn.prepareStatement(view);
 		rsView = pizzaIDView.executeQuery(view);
+		conn.commit();
 		if (rsView.next()) {
 			id = rsView.getDouble(1);
 			pizzaid = (int) id + 1;
 		}
-		conn.close();
+
 		return pizzaid;
 	}
 }
