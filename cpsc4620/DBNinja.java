@@ -310,7 +310,7 @@ public final class DBNinja {
 
 				connect_to_db();
 				conn.setAutoCommit(false);
-				String inventoryUpdateQuery = "UPDATE topping SET toppping_CurINVT = toppping_CurINVT - ? WHERE topping_TopID = ?";
+				String inventoryUpdateQuery = "UPDATE topping SET topping_CurINVT = topping_CurINVT - ? WHERE topping_TopID = ?";
 				stmtInventoryUpdate = conn.prepareStatement(inventoryUpdateQuery);
 				stmtInventoryUpdate.setDouble(1, finalToppingAmount);
 				stmtInventoryUpdate.setInt(2, topping.getTopID());
@@ -588,7 +588,7 @@ public final class DBNinja {
 		connect_to_db();
 		Order latest = null;
 
-		String latestQuery = "SELECT * FROM order ORDER BY ordertable_OrderDateTime DESC LIMIT 1";
+		String latestQuery = "SELECT * FROM ordertable ORDER BY ordertable_OrderDateTime DESC LIMIT 1";
 
 		PreparedStatement stmtLatestOrder = conn.prepareStatement(latestQuery);
 		ResultSet rsLatest = stmtLatestOrder.executeQuery();
@@ -626,7 +626,7 @@ public final class DBNinja {
 
 
 		// Query to get all orders placed on the specific date
-		String datedQuery = "SELECT * FROM order WHERE DATE(ordertable_OrderDateTime) = ?";
+		String datedQuery = "SELECT * FROM ordertable WHERE DATE(ordertable_OrderDateTime) = ?";
 
 		stmtDatedOrders = conn.prepareStatement(datedQuery);
 		stmtDatedOrders.setString(1, date);  // Set the date parameter for the query
