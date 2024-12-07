@@ -1425,7 +1425,7 @@ public final class DBNinja {
 		connect_to_db();
 		PreparedStatement profitOrderView = null;
 		ResultSet rsView = null;
-		String view = "SELECT *" + "FROM ProfitByOrderType";
+		String view = "SELECT *" + "FROM ProfitByOrderType ORDER BY CASE WHEN OrderMonth = '12/2024' THEN 1 ELSE 0";
 		profitOrderView = conn.prepareStatement(view);
 		rsView = profitOrderView.executeQuery(view);
 
