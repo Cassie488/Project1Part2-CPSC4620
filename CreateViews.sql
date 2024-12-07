@@ -50,9 +50,12 @@ CREATE VIEW ProfitByOrderType AS
                 2 as o
                 FROM ordertable ) TEMP1
 	ORDER BY
-		o, CASE customerType 
-				WHEN 'dinein' THEN 1
-                WHEN 'pickup' THEN 2 
-                WHEN 'delivery' THEN 3
-                ELSE 4
-                END, TEMP1.Profit DESC;
+		o, CASE 
+			WHEN OrderMonth = '12/2024' THEN 1 
+			ELSE 0 END,
+			CASE customerType 
+			WHEN 'dinein' THEN 1
+            WHEN 'pickup' THEN 2 
+            WHEN 'delivery' THEN 3
+            ELSE 4
+            END, TEMP1.Profit DESC;
